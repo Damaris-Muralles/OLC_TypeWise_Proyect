@@ -56,16 +56,24 @@ header nav a:hover{
     margin: auto;
     overflow: hidden;
 }
-
+.contenedor{ 
+  position: relative;
+  margin-top: 50px;
+  margin-bottom: 50px;
+  height: 700px;
+  width: 90%;
+  background-size: cover;
+  background-color: #1c1c1c;
+  text-align: center;
+  justify-content: center;
+  border-radius: 30px;
+  box-shadow: 1px 1px 10px 0 rgb(0, 0, 0,0.5);
+}
 .main{ 
     position: relative;
     padding-top: 150px;
     height: 650px;
-    width: 100%;/*
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-image: url("./Img/fondo_claro_p.png");
-    background-position: center;*/
+    width: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -97,50 +105,40 @@ header nav a:hover{
  
 
 
- .contenedor{ 
-    position: relative;
-    margin-top: 50px;
-    margin-bottom: 50px;
-    height: 700px;
-    width: 90%;
-    background-size: cover;
-    background-color: #1c1c1c;
-    text-align: center;
-    justify-content: center;
-    border-radius: 30px;
-    box-shadow: 1px 1px 10px 0 rgb(0, 0, 0,0.5);
- }
  
  .contenedor1{ 
-    position: relative;
-    margin-top: 50px;
-    margin-bottom: 50px;
-    height: 500px;
-    width: 90%;
-    background-size: cover;
-    background-color: #1c1c1c;
-    border-radius: 30px;
-    box-shadow: 1px 1px 10px 0 rgb(0, 0, 0,0.5);
-
-    display: flex;
-    justify-content: center;
+  position: relative;
+  margin-top: 70px;
+  margin-bottom: 50px;
+  height: 500px;
+  width: 90%;
+  background-size: cover;
+  background-color: #1c1c1c;
+  text-align: center;
+  justify-content: center;
+  border-radius: 30px;
+  box-shadow: 1px 1px 10px 0 rgb(0, 0, 0,0.5);
 
  }  
-.CodeMirror {
-    text-align: left;
-    width: 800px;
-    height: 300px;
-  }
-  
-  .CodeMirror-scroll {
-    text-align: left;
-  }
+
  h1{
     font-family: 'Courier New', Courier, monospace;
     
     font-weight: bold;
     color:#f9f9fa;
  }
+ .contenedorgeneral {
+  display: flex;
+  margin-top: 10px;
+}
+
+.editorcontainer {
+  margin-right: 10px;
+}
+.containerconsola textarea {
+  border: none;
+  border-radius: 5px;
+}
 
 #manuales {
   display: flex;
@@ -199,6 +197,29 @@ header nav a:hover{
     display: flex;
     flex-direction: column;
 }
+/* Ancho del scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+/* Color y radio de las esquinas del scrollbar */
+::-webkit-scrollbar-thumb {
+  background: rgb(29, 28, 28);
+  border-radius: 5px;
+}
+
+/* Color del scrollbar al pasar el cursor por encima */
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(131, 131, 131);
+}
+
+/* Color del scrollbar al hacer clic */
+::-webkit-scrollbar-thumb:active {
+  background: rgb(51, 50, 50);
+}
+.nav-item{
+ display:flex;
+}
 footer{
     position:relative;
     width:100%;
@@ -240,4 +261,118 @@ footer{
     .contenedor{
         height: 600px;
     }
+}
+
+
+.activetab{
+  background-color:#1c1c1c00;
+}
+.btn-info {
+  margin-right: 80px;
+}
+.tabs-container {
+  display: flex;
+  border-bottom: 1px solid #6b6b6b;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+}
+
+.tab {
+  display: inline-block;
+  padding: 10px 20px;
+  border: 1px solid #363535;
+  border-bottom: none;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+  cursor: pointer;
+  color:white;
+  background-color: #55575c;
+  margin-right: -5px;
+}
+/* Ocultar el botón de cerrar por defecto */
+.tab .close {
+  color: #55575c;
+}
+
+/* Mostrar el botón de cerrar solo cuando el cursor esté sobre la pestaña */
+.tab:hover .close {
+  color: #fff;
+}
+.tab.active{
+  background:#0e9df6; 
+  color: #fff;
+
+}
+/* Cambiar el color del botón de cerrar a azul cuando la pestaña esté activa */
+.tab.active .close {
+  color: #0e9df6;
+}
+.tab.active:hover .close {
+  color:white;
+}
+
+.tab:last-child {
+  border-bottom: 1px solid #985c5c;
+  margin-right: 0;
+}
+#editor {
+  position: relative;
+}
+
+.tab-content {
+  padding: 20px;
+  border: 1px solid #4b4a4a;
+  border-top: none;
+  border-bottom-left-radius: 5px;
+  border-bottom-right-radius: 5px;
+  height: 444px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: -1;
+}
+.CodeMirror {
+  text-align: left;
+    height: 350px;
+    width: 42.5vw;
+  border-radius: 20px;
+}
+
+.CodeMirror-scroll {
+  text-align: left;
+}
+.tab-content.active {
+  position: static;
+  z-index: auto;
+}
+
+.close {
+  float: right;
+  margin-left: 10px;
+  cursor: pointer;
+}
+
+.add-tab {
+  display: inline-block;
+  padding: 10px 20px;
+  border: 2px solid #3b97a0;
+  border-bottom: none;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+  cursor: pointer;
+  background-color: #373636;
+  margin-right: -5px;
+  color: #f5f0f0;
+  font-size: 20px;
+}
+
+.add-tab:hover {
+  color: #08e9fd;
+  border: 2px solid #08e9fd;
+  border-bottom: none;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
 }

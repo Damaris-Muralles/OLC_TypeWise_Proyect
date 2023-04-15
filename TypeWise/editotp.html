@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Mi Editor de Código</title>
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.3/codemirror.min.css" />
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.3/theme/dracula.min.css" />
+</head>
+<style>
+    .tab-list {
+    margin-top: 20px;
+}
+.nav-tabs .nav-link {
+border: none;
+border-top-left-radius: 0.25rem;
+border-top-right-radius: 0.25rem;
+}
+
+.nav-tabs .nav-link.active {
+background-color: #fff;
+border-color: #dee2e6 #dee2e6 #fff;
+color: #495057;
+}
+
+.nav-tabs .nav-link:not(.active) {
+color: #6c757d;
+}
+
+.nav-tabs .nav-link i.fa-plus:before {
+content: "+";
+}
+
+/* Estilos para el editor y la consola */
+.editor-wrapper {
+height: calc(100vh - 80px);
+border-right: 1px solid #dee2e6;
+}
+
+.console-wrapper {
+height: calc(100vh - 80px);
+margin-left: 20px;
+padding: 10px;
+border: 1px solid #dee2e6;
+border-radius: 0.25rem;
+}
+
+.console-header {
+font-weight: bold;
+}
+
+.console-body {
+height: calc(100% - 30px);
+overflow-y: scroll;
+margin-top: 5px;
+padding: 5px;
+background-color: #f8f9fa;
+border: 1px solid #dee2e6;
+border-radius: 0.25rem;
+}
+
+/* Estilos para la pestaña "Agregar Pestaña" */
+#add-tab {
+border: none;
+background-color: transparent;
+color: #6c757d;
+font-size: 24px;
+margin-left: 5px;
+padding: 0;
+}
+
+#add-tab:hover {
+color: #007bff;
+}
+
+#add-tab:focus {
+box-shadow: none;
+outline: none;
+}
+
+#add-tab i.fa-plus:before {
+content: "+";
+}
+</style>
+<body>
+
+	<div class="container-fluid">
+		<div class="row">
+			<div class="col-md-2">
+				<div class="tab-list">
+                    <ul class="nav nav-tabs" id="myTab" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" id="tab1-tab" data-toggle="tab" href="#tab1" role="tab" aria-controls="tab1" aria-selected="true">Pestaña 1</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="add-tab" data-toggle="tab" href="#" role="tab" aria-controls="add" aria-selected="false"><i class="fa fa-plus"></i></a>
+                        </li>
+                    </ul>
+                </div>
+			</div>
+			<div class="col-md-10">
+				<div class="tab-content">
+                    <div class="tab-pane fade show active" id="tab1" role="tabpanel" aria-labelledby="tab1-tab">
+                        <div class="editor-wrapper">
+                            <textarea id="editor">/* aquí irá tu código */</textarea>
+                        </div>
+                    </div>
+                </div>
+			</div>
+		</div>
+	</div>
+
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.3/codemirror.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.3/mode/javascript/javascript.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.3/addon/edit/matchbrackets.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.3/addon/selection/active-line.min.js"></script>
+
+	<!-- aquí irá tu propio script para manejar las pestañas -->
+	<script src="mi_script.js"></script>
+
+</body>
+</html>

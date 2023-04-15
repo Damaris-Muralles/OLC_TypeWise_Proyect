@@ -90,3 +90,311 @@ function changeImage(imageName) {
 }
 
 
+
+
+const tabsContainer = document.querySelector('.tabs-container');
+const addTabBtn = document.querySelector('.add-tab');
+
+
+addTabBtn.addEventListener('click', () => {
+  // Obtener el número máximo de pestaña existente
+  const tabs = document.querySelectorAll('.tab');
+  let maxTabNum = 0;
+  tabs.forEach(tab => {
+    const tabNum = parseInt(tab.getAttribute('data-tab'));
+    if (tabNum > maxTabNum) {
+      maxTabNum = tabNum;
+    }
+  });
+  const newTabNum = maxTabNum + 1;
+  
+  // Crear la nueva pestaña
+  const newTab = document.createElement('div');
+  newTab.classList.add('tab');
+  newTab.setAttribute('data-tab', newTabNum);
+  newTab.innerHTML = `Tab ${newTabNum} <span class="close">×</span>`;
+  tabsContainer.insertBefore(newTab, addTabBtn);
+  
+  // Crear el contenido de la nueva pestaña
+  const newTabContent = document.createElement('div');
+  newTabContent.classList.add('tab-content','activetab');
+  newTabContent.setAttribute('data-tab', newTabNum);
+  newTabContent.innerHTML = `<button type="button" class="btn btn-info">Abrir</button>
+<button type="button" class="btn btn-info">Guardar</button>
+<button type="button" class="btn btn-info">Ejecutar</button>
+<div class="contenedorgeneral">
+  <div class="editorcontainer">
+    <textarea id="myeditor${newTabNum}"></textarea>
+  </div>
+  <div class="containerconsola">
+    <textarea id="myconsole${newTabNum}">resultado</textarea>
+  </div>
+</div>`;
+ // Agregar el nuevo contenido al DOM
+ const editorElement = document.querySelector('#editor');
+ editorElement.appendChild(newTabContent);
+ 
+  const editor = CodeMirror.fromTextArea(document.getElementById(`myeditor${newTabNum}`), {
+    lineNumbers: true,
+    mode: "text/html",
+    theme:"tomorrow-night-bright"
+  });
+  const consoleEditor = CodeMirror.fromTextArea(document.getElementById(`myconsole${newTabNum}`), {
+    lineNumbers: true,
+    mode: "text/html",
+    theme:"tomorrow-night-bright",
+    readOnly: true
+  });
+
+  // Agregar acción al botón "Abrir"
+ const openBtn = newTabContent.querySelector('.btn-info:nth-child(1)');
+ openBtn.addEventListener('click', () => {
+   const input = document.createElement('input');
+   input.type = 'file';
+   input.accept = '.tw';
+   input.onchange = () => {
+     const file = input.files[0];
+     if (file) {
+       const reader = new FileReader();
+       reader.onload = () => {
+         editor.setValue(reader.result);
+       };
+       reader.readAsText(file);
+     }
+   };
+   input.click();
+ });
+ 
+ // Agregar acción al botón "Guardar"
+ const saveBtn = newTabContent.querySelector('.btn-info:nth-child(2)');
+saveBtn.addEventListener('click', () => {
+  const text = editor.getValue();
+  if (!text) {
+    Swal.fire(
+      'No hay contenido para guardar',
+      'Click en ok para salir',
+      'info'
+    )
+    return;
+  }
+  const blob = new Blob([text], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `Archivo${newTabNum}.tw`;
+  a.click();
+});
+ 
+  // Agregar event listeners a las nuevas pestañas y contenido
+  newTab.addEventListener('click', () => {
+    const tabNum = newTab.dataset.tab;
+    selectTab(tabNum);
+  });
+  
+  const newCloseBtn = newTab.querySelector('.close');
+  newCloseBtn.addEventListener('click', e => {
+    e.stopPropagation();
+    const tabNum = parseInt(e.target.parentNode.dataset.tab);
+    if (tabNum !== 1) {
+      const isCurrentTab = e.target.parentNode.classList.contains('active');
+      e.target.parentNode.remove();
+      document.querySelector(`.tab-content[data-tab="${tabNum}"]`).remove();
+      if (isCurrentTab) {
+        const tabs = document.querySelectorAll('.tab');
+        let prevTabNum = 0;
+        tabs.forEach(tab => {
+          const currentTabNum = parseInt(tab.dataset.tab);
+          if (currentTabNum < tabNum && currentTabNum > prevTabNum) {
+            prevTabNum = currentTabNum;
+          }
+        });
+        selectTab(prevTabNum);
+      }
+    }
+  });
+  selectTab(newTabNum);
+});
+
+function selectTab(tabNum) {
+  const tabs = document.querySelectorAll('.tab');
+  const tabContents = document.querySelectorAll('.tab-content');
+  tabs.forEach(tab => {
+
+    if (tab.dataset.tab == tabNum) {
+      tab.classList.add('active');
+    } else {
+      tab.classList.remove('active');
+    }
+  });
+  tabContents.forEach(content => {
+    if (content.dataset.tab == tabNum) {
+      content.classList.add('active');
+    } else {
+      content.classList.remove('active');
+    }
+  });
+}
+
+// Crear la primera pestaña y su contenido
+const firstTab = document.createElement('div');
+firstTab.classList.add('tab', 'active');
+firstTab.setAttribute('data-tab', '1');
+firstTab.innerHTML = `Tab 1 <span class="close">×</span>`;
+tabsContainer.insertBefore(firstTab, addTabBtn);
+
+const firstTabContent = document.createElement('div');
+firstTabContent.classList.add('tab-content', 'active','activetab');
+firstTabContent.setAttribute('data-tab', '1');
+firstTabContent.innerHTML = `<button type="button" class="btn btn-info">Abrir</button>
+<button type="button" class="btn btn-info">Guardar</button>
+<button type="button" class="btn btn-info">Ejecutar</button>
+<div class="contenedorgeneral">
+  <div class="editorcontainer">
+    <textarea id="myeditor1"></textarea>
+  </div>
+  <div class="containerconsola">
+    <textarea id="myconsole1">resultado</textarea>
+  </div>
+</div>`;
+
+window.onload = function() {
+  const editor = CodeMirror.fromTextArea(document.getElementById('myeditor1'), {
+    lineNumbers: true,
+    mode: "text/html",
+    theme:"tomorrow-night-bright"
+  });
+  const consoleEditor = CodeMirror.fromTextArea(document.getElementById('myconsole1'), {
+    lineNumbers: true,
+    mode: "text/html",
+    theme:"tomorrow-night-bright",
+    readOnly: true
+  });
+    // Agregar acción al botón "Abrir"
+    const openBtn = firstTabContent.querySelector('.btn-info:nth-child(1)');
+    openBtn.addEventListener('click', () => {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.tw';
+      input.onchange = () => {
+        const file = input.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = () => {
+            editor.setValue(reader.result);
+          };
+          reader.readAsText(file);
+        }
+      };
+      input.click();
+    });
+    
+    // Agregar acción al botón "Guardar"
+    // Agregar acción al botón "Guardar"
+    const saveBtn = firstTabContent.querySelector('.btn-info:nth-child(2)');
+    saveBtn.addEventListener('click', () => {
+      const text = editor.getValue();
+      if (!text) {
+        Swal.fire(
+          'No hay contenido para guardar',
+          'Click en ok para salir',
+          'info'
+        )
+        return;
+      }
+      const blob = new Blob([text], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'Archivo1.tw';
+      a.click();
+    });
+  
+}
+
+const editorElement = document.querySelector('#editor');
+editorElement.appendChild(firstTabContent);
+
+firstTab.addEventListener('click', () => {
+  const tabNum = firstTab.dataset.tab;
+  selectTab(tabNum);
+});
+
+const firstCloseBtn = firstTab.querySelector('.close');
+firstCloseBtn.addEventListener('click', e => {
+  e.stopPropagation();
+  const tabNum = parseInt(e.target.parentNode.dataset.tab);
+  if (tabNum === 1) {
+    const firstTabContent = document.querySelector(`.tab-content[data-tab="${tabNum}"]`);
+
+    firstTabContent.innerHTML = `<button type="button" class="btn btn-info">Abrir</button>
+<button type="button" class="btn btn-info">Guardar</button>
+<button type="button" class="btn btn-info">Ejecutar</button>
+<div class="contenedorgeneral">
+  <div class="editorcontainer">
+    <textarea id="myeditor${tabNum}"></textarea>
+  </div>
+  <div class="containerconsola">
+    <textarea id="myconsole${tabNum}">resultado</textarea>
+  </div>
+</div>`;
+
+  const editor = CodeMirror.fromTextArea(document.getElementById(`myeditor${tabNum}`), {
+    lineNumbers: true,
+    mode: "text/html",
+    theme:"tomorrow-night-bright"
+  });
+  const consoleEditor = CodeMirror.fromTextArea(document.getElementById(`myconsole${tabNum}`), {
+    lineNumbers: true,
+    mode: "text/html",
+    theme:"tomorrow-night-bright",
+    readOnly: true
+  });
+    // Agregar acción al botón "Abrir"
+    const openBtn = firstTabContent.querySelector('.btn-info:nth-child(1)');
+    openBtn.addEventListener('click', () => {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.tw';
+      input.onchange = () => {
+        const file = input.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = () => {
+            editor.setValue(reader.result);
+          };
+          reader.readAsText(file);
+        }
+      };
+      input.click();
+    });
+    
+    // Agregar acción al botón "Guardar"
+    const saveBtn = firstTabContent.querySelector('.btn-info:nth-child(2)');
+    saveBtn.addEventListener('click', () => {
+      const text = editor.getValue();
+      if (!text) {
+        Swal.fire(
+          'No hay contenido para guardar',
+          'Click en ok para salir',
+          'info'
+        )
+        return;
+      }
+      const blob = new Blob([text], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Archivo${tabNum}.tw`;
+      a.click();
+    });
+  
+    tabCounter = 1;
+  } else {
+    const isCurrentTab = e.target.parentNode.classList.contains('active');
+    e.target.parentNode.remove();
+    document.querySelector(`.tab-content[data-tab="${tabNum}"]`).remove();
+    if (isCurrentTab) {
+      selectTab(tabNum - 1);
+    }
+  }
+});

@@ -1,0 +1,30 @@
+Si estás utilizando un lenguaje personalizado, puedes crear tu propio modo de resaltado de sintaxis para CodeMirror. Para hacerlo, debes definir un objeto de modo que especifique cómo se deben resaltar las diferentes partes de tu código.
+
+Aquí hay un ejemplo básico de cómo crear un modo personalizado para resaltar palabras clave en rojo:
+
+CodeMirror.defineMode("mimodo", function() {
+  return {
+    token: function(stream) {
+      if (stream.match("palabraclave1") || stream.match("palabraclave2")) {
+        return "keyword";
+      }
+      stream.next();
+      return null;
+    }
+  };
+});
+
+CodeMirror.defineMIME("text/x-mimodo", "mimodo");
+Luego, puedes utilizar tu modo personalizado al inicializar el editor:
+
+var editor = CodeMirror.fromTextArea(document.getElementById('myeditor'), {
+  lineNumbers: true,
+  mode: "text/x-mimodo",
+  theme:"tomorrow-night-bright"
+});
+Y finalmente, puedes definir el estilo para la clase keyword en tu archivo CSS para cambiar el color de las palabras clave:
+
+.cm-s-tomorrow-night-bright .cm-keyword {
+  color: red;
+}
+Este es solo un ejemplo básico. Puedes personalizar tu modo de muchas maneras diferentes para resaltar la sintaxis de tu lenguaje personalizado. ¿Te gustaría saber más sobre cómo crear modos personalizados en CodeMirror?
