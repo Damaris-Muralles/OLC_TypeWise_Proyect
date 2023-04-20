@@ -1,0 +1,58 @@
+[
+  {
+    "tipo": "INSTR_DECLARACION",
+    "identificador": "var1",
+    "tipo_dato": "STRING",
+    "valor": ""
+  },
+  {
+    "tipo": "INSTR_DECLARACION",
+    "identificador": "var2",
+    "tipo_dato": "BOOLEAN",
+    "valor": "true"
+  },
+  {
+    "tipo": "INSTR_DECLARACION",
+    "identificador": "var3",
+    "tipo_dato": "INT",
+    "valor": 0
+  },
+  {
+    "tipo": "INSTR_DECLARACION",
+    "identificador": "var4",
+    "tipo_dato": "DOUBLE",
+    "valor": 0
+  },
+  {
+    "tipo": "INSTR_DECLARACION",
+    "identificador": "var5",
+    "tipo_dato": "CHAR",
+    "valor": "\u0000"
+  },
+  {
+    "tipo": "INSTR_DECLARACION_CON_ASIGNACION",
+    "identificador": "a2",
+    "tipo_dato": "BOOLEAN",
+    "valor": {
+      "operandoIzq": {
+        "operandoIzq": {
+          "operandoIzq": {
+            "tipo": "VAL_INT",
+            "valor": 1
+          },
+          "operandoDer": {
+            "tipo": "VAL_INT",
+            "valor": 2
+          },
+          "tipo": "OP_RESTA"
+        },
+        "operandoDer": {
+          "tipo": "VAL_INT",
+          "valor": 0
+        },
+        "tipo": "OP_MENOR_QUE"
+      },
+      "tipo": "OP_NOT"
+    }
+  }
+]

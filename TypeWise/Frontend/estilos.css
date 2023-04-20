@@ -344,6 +344,13 @@ footer{
 .CodeMirror-scroll {
   text-align: left;
 }
+.CodeMirror-hints {
+  background-color: black;
+}
+
+.CodeMirror-hint {
+  color: white;
+}
 .tab-content.active {
   position: static;
   z-index: auto;

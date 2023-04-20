@@ -10,18 +10,19 @@
      <meta charset="utf-8">
      <meta name="viewport" content="width=device-width, initial-scale=1">
      
-      
      
      <!-- Icono de app -->
      <link rel="shortcut icon" href="Img/logoicon.ico">
      
- 
-     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
      
+     <!-- Estilos -->
+     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
      <link rel="stylesheet" href="codemirror/lib/codemirror.css">
+     <link rel="stylesheet" href="codemirror/addon/hint/show-hint.css">
      <link rel="stylesheet" href="codemirror/theme/tomorrow-night-bright.css">
      <link rel="stylesheet" href="estilos.css">
- 
+    
+     <!-- Titulo-->
      <title>TypeWise</title>
    </head>
    <body>
@@ -56,6 +57,7 @@
          <h1 id="welcome-text"><span></span><span class="cursor"></span></h1>
        </section>
        <hr>
+
        <section class="contenedor wrapper" id="manuales">
         <h1>-::MANUALES::-</h1>
         <div class="content">
@@ -63,7 +65,7 @@
             <a class="manualstile active" onclick="changePDF('Manual_usuario.pdf', this)">Manual de Usuario</a>
             <a class="manualstile" onclick="changePDF('Manual_tecnico.pdf', this)">Manual Tecnico</a>
           </div>
-          <embed id="pdf-viewer"  src="../Manuales/Manual_usuario.pdf" type="application/pdf" width="1000px" height="530px">
+          <embed id="pdf-viewer"  src="../../Manuales/Manual_usuario.pdf" type="application/pdf" width="1000px" height="530px">
         </div>
       </section>
 
@@ -72,19 +74,6 @@
           <div class="add-tab">+</div>
         </div>
       </section>
-        <!--<div class="tab-content" data-tab="3"><button type="button" class="btn btn-info">Abrir</button>
-          <button type="button" class="btn btn-info">Guardar</button>
-          <button type="button" class="btn btn-info">Ejecutar</button>
-          <div class="contenedorgeneral">
-            <div class="editorcontainer">
-              <textarea id="myeditor"  >/* aquí irá tu código 3*/</textarea>
-            </div>
-            <div class="containerconsola">
-              <textarea id="myconsole">resultado</textarea>
-            </div>
-          </div></div>-->
-        
-        
       
       <section class="contenedor wrapper" id="reportes">
         <h1>-::REPORTES::-</h1>
@@ -133,10 +122,12 @@
  
  
      
-     <!-- Option 1: Bootstrap Bundle with Popper -->
+     <!-- Scripts para hacer dinamica la interfaz -->
      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
      <script src="codemirror/lib/codemirror.js"></script>
+     <script src="codemirror/addon/hint/show-hint.js"></script>
+     <script src="editor_dinamic.js"></script>
      <script src="index_dinamic.js"></script>
      
    </body>

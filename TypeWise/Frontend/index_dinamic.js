@@ -2,6 +2,11 @@
     Autor: DM
     Año:2023
 */
+
+
+// FUNCIONES PARA HACER DINAMICA LA INTERFAZ
+
+// Para el Navbar
 let navLinks = document.querySelectorAll('.nav-link');
 navLinks[0].classList.add('active');
 window.addEventListener('scroll', function() {
@@ -32,6 +37,7 @@ window.addEventListener('scroll', function() {
   navLinks[index].classList.add('active');
 });
 
+// Posicionar las secciones antes de la seccion al dar click
 var links = document.querySelectorAll('.navbar-nav .nav-link');
 for (var i = 0; i < links.length; i++) {
 links[i].addEventListener('click', function(event) {
@@ -44,6 +50,9 @@ links[i].addEventListener('click', function(event) {
   }
 });
 }
+
+
+// Para la seccion inicial y el mensaje de bienvenidos
 var text = 'Bienvenidos';
 var textElement = document.querySelector('#welcome-text span');
 var i = 0;
@@ -54,9 +63,11 @@ var interval = setInterval(function() {
     clearInterval(interval);
   }
 }, 150);
+
+// Cambio de manuales
 function changePDF(file, link) {
   var pdfViewer = document.querySelector('#pdf-viewer');
-  pdfViewer.src = '../Manuales/' + file;
+  pdfViewer.src = '../../Manuales/' + file;
 
   var links = document.querySelectorAll('.manualstile');
   links.forEach(function(link) {
@@ -64,6 +75,7 @@ function changePDF(file, link) {
   });
   link.classList.add('active');
 }
+
 function changeReport(file, link) {
   // Código para cambiar la imagen en el elemento .viewreport
   var reportImage = document.querySelector('#report-image');
@@ -75,12 +87,16 @@ function changeReport(file, link) {
   });
   link.classList.add('active');
 }
+
+// funcio para ver el offcamvas
 function showOffcanvas(event) {
   event.preventDefault();
   var offcanvasElement = document.getElementById('offcanvasRight');
   var offcanvas = new bootstrap.Offcanvas(offcanvasElement);
   offcanvas.show();
 }
+
+// Cambiar imagen de reporte segun lo seleccionado
 function changeImage(imageName) {
   var imageElement = document.querySelector('#reportes img');
   imageElement.src = 'Img/' + imageName;
@@ -92,11 +108,14 @@ function changeImage(imageName) {
 
 
 
+// FUNCIONES PARA EL EDITOR
+
 const tabsContainer = document.querySelector('.tabs-container');
 const addTabBtn = document.querySelector('.add-tab');
 
-
+// Añadir nuevo tab/pestaña a la seccion de editor
 addTabBtn.addEventListener('click', () => {
+
   // Obtener el número máximo de pestaña existente
   const tabs = document.querySelectorAll('.tab');
   let maxTabNum = 0;
@@ -119,29 +138,42 @@ addTabBtn.addEventListener('click', () => {
   const newTabContent = document.createElement('div');
   newTabContent.classList.add('tab-content','activetab');
   newTabContent.setAttribute('data-tab', newTabNum);
+
   newTabContent.innerHTML = `<button type="button" class="btn btn-info">Abrir</button>
-<button type="button" class="btn btn-info">Guardar</button>
-<button type="button" class="btn btn-info">Ejecutar</button>
-<div class="contenedorgeneral">
-  <div class="editorcontainer">
-    <textarea id="myeditor${newTabNum}"></textarea>
-  </div>
-  <div class="containerconsola">
-    <textarea id="myconsole${newTabNum}">resultado</textarea>
-  </div>
-</div>`;
+    <button type="button" class="btn btn-info">Guardar</button>
+    <button type="button" class="btn btn-info">Ejecutar</button>
+    <div class="contenedorgeneral">
+      <div class="editorcontainer">
+        <textarea id="myeditor${newTabNum}"></textarea>
+      </div>
+      <div class="containerconsola">
+        <textarea id="myconsole${newTabNum}">resultado</textarea>
+      </div>
+    </div>`;
  // Agregar el nuevo contenido al DOM
  const editorElement = document.querySelector('#editor');
  editorElement.appendChild(newTabContent);
  
+ // convertir los textarea a editores
   const editor = CodeMirror.fromTextArea(document.getElementById(`myeditor${newTabNum}`), {
     lineNumbers: true,
-    mode: "text/html",
-    theme:"tomorrow-night-bright"
+    mode: "text/x-typewise",
+    theme:"tomorrow-night-bright",
+    hintOptions: {
+      hint: myHint,
+      completeSingle: false
+    }
   });
+  //controlador de eventos del editor
+editor.on("keyup", function(editor, event) {
+  const keyCode = event.keyCode;
+  if (keyCode !== 38 && keyCode !== 40) {
+    editor.showHint();
+  }
+});
   const consoleEditor = CodeMirror.fromTextArea(document.getElementById(`myconsole${newTabNum}`), {
     lineNumbers: true,
-    mode: "text/html",
+    mode: "text/plain",
     theme:"tomorrow-night-bright",
     readOnly: true
   });
@@ -177,6 +209,7 @@ saveBtn.addEventListener('click', () => {
     )
     return;
   }
+  // convirtiendo a archivo
   const blob = new Blob([text], { type: 'text/plain' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -190,11 +223,13 @@ saveBtn.addEventListener('click', () => {
     const tabNum = newTab.dataset.tab;
     selectTab(tabNum);
   });
-  
+
+  // agregando accion para cerrar pestaña
   const newCloseBtn = newTab.querySelector('.close');
   newCloseBtn.addEventListener('click', e => {
     e.stopPropagation();
     const tabNum = parseInt(e.target.parentNode.dataset.tab);
+    // condicionando para que no se elimine la primera pestaña
     if (tabNum !== 1) {
       const isCurrentTab = e.target.parentNode.classList.contains('active');
       e.target.parentNode.remove();
@@ -204,6 +239,7 @@ saveBtn.addEventListener('click', () => {
         let prevTabNum = 0;
         tabs.forEach(tab => {
           const currentTabNum = parseInt(tab.dataset.tab);
+          // condicion para seleccionar la pestaña anterior al eliminar pestaña activa
           if (currentTabNum < tabNum && currentTabNum > prevTabNum) {
             prevTabNum = currentTabNum;
           }
@@ -215,6 +251,7 @@ saveBtn.addEventListener('click', () => {
   selectTab(newTabNum);
 });
 
+// funcion para activar/seleccionar pestañas
 function selectTab(tabNum) {
   const tabs = document.querySelectorAll('.tab');
   const tabContents = document.querySelectorAll('.tab-content');
@@ -256,19 +293,33 @@ firstTabContent.innerHTML = `<button type="button" class="btn btn-info">Abrir</b
     <textarea id="myconsole1">resultado</textarea>
   </div>
 </div>`;
-
+// esta funcion obliga a que la pagina termine de cargar para realizar las acciones
 window.onload = function() {
+
+  // convierte el textarea en editor
   const editor = CodeMirror.fromTextArea(document.getElementById('myeditor1'), {
     lineNumbers: true,
-    mode: "text/html",
-    theme:"tomorrow-night-bright"
+    mode: "text/x-typewise",
+    theme:"tomorrow-night-bright",
+    hintOptions: {
+      hint: myHint,
+      completeSingle: false
+    }
   });
+  //controlador de eventos del editor
+editor.on("keyup", function(editor, event) {
+  const keyCode = event.keyCode;
+  if (keyCode !== 38 && keyCode !== 40) {
+    editor.showHint();
+  }
+});
   const consoleEditor = CodeMirror.fromTextArea(document.getElementById('myconsole1'), {
     lineNumbers: true,
-    mode: "text/html",
+    mode: "text/plain",
     theme:"tomorrow-night-bright",
     readOnly: true
   });
+
     // Agregar acción al botón "Abrir"
     const openBtn = firstTabContent.querySelector('.btn-info:nth-child(1)');
     openBtn.addEventListener('click', () => {
@@ -288,7 +339,6 @@ window.onload = function() {
       input.click();
     });
     
-    // Agregar acción al botón "Guardar"
     // Agregar acción al botón "Guardar"
     const saveBtn = firstTabContent.querySelector('.btn-info:nth-child(2)');
     saveBtn.addEventListener('click', () => {
@@ -313,12 +363,16 @@ window.onload = function() {
 
 const editorElement = document.querySelector('#editor');
 editorElement.appendChild(firstTabContent);
-
+// seleccionar primera pestaña
 firstTab.addEventListener('click', () => {
   const tabNum = firstTab.dataset.tab;
   selectTab(tabNum);
 });
-
+// funcion de cerrar primera pestaña
+/*
+* esta funcion lo que realmente hace es borrar el contenido de la pestaña 
+* haciendo como que fuera una nueva pestaña en blanco
+*/ 
 const firstCloseBtn = firstTab.querySelector('.close');
 firstCloseBtn.addEventListener('click', e => {
   e.stopPropagation();
@@ -327,25 +381,37 @@ firstCloseBtn.addEventListener('click', e => {
     const firstTabContent = document.querySelector(`.tab-content[data-tab="${tabNum}"]`);
 
     firstTabContent.innerHTML = `<button type="button" class="btn btn-info">Abrir</button>
-<button type="button" class="btn btn-info">Guardar</button>
-<button type="button" class="btn btn-info">Ejecutar</button>
-<div class="contenedorgeneral">
-  <div class="editorcontainer">
-    <textarea id="myeditor${tabNum}"></textarea>
-  </div>
-  <div class="containerconsola">
-    <textarea id="myconsole${tabNum}">resultado</textarea>
-  </div>
-</div>`;
+    <button type="button" class="btn btn-info">Guardar</button>
+    <button type="button" class="btn btn-info">Ejecutar</button>
+    <div class="contenedorgeneral">
+      <div class="editorcontainer">
+        <textarea id="myeditor${tabNum}"></textarea>
+      </div>
+      <div class="containerconsola">
+        <textarea id="myconsole${tabNum}">resultado</textarea>
+      </div>
+    </div>`;
 
+    // crea los editores y consola
   const editor = CodeMirror.fromTextArea(document.getElementById(`myeditor${tabNum}`), {
     lineNumbers: true,
-    mode: "text/html",
-    theme:"tomorrow-night-bright"
+    mode: "text/x-typewise",
+    theme:"tomorrow-night-bright",
+    hintOptions: {
+      hint: myHint,
+      completeSingle: false
+    }
   });
+  //controlador de eventos del editor
+editor.on("keyup", function(editor, event) {
+  const keyCode = event.keyCode;
+  if (keyCode !== 38 && keyCode !== 40) {
+    editor.showHint();
+  }
+});
   const consoleEditor = CodeMirror.fromTextArea(document.getElementById(`myconsole${tabNum}`), {
     lineNumbers: true,
-    mode: "text/html",
+    mode: "text/plain",
     theme:"tomorrow-night-bright",
     readOnly: true
   });
