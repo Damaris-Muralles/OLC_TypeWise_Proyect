@@ -9,53 +9,55 @@ const TIPO_DATO = {
 }
 
 
-/**
- * Función que crea objetos de tipo Símbolo.
- * @param {*} id 
- * @param {*} tipo 
- * @param {*} valor 
- */
-function crearSimbolo(id, tipo, valor) {
+function crearSimbolo(id, tipo,tipodato,entorno,linea,columna, valor) {
     return {
         id: id,
         tipo: tipo,
+        tipodato: tipodato,
+        entorno:entorno,
+        linea: linea,
+        columna: columna,
         valor: valor
     }
 }
-
 
 /**
  * Clase que representa una Tabla de Símbolos.
  */
 class TS {
 
-    /**
-     * El costructor recibe como parámetro los simbolos de la tabla padre.
-     * @param {*} simbolos 
-     */
-    constructor (simbolos) {
+    constructor (simbolos,padre) {
         this._simbolos = simbolos;
+        this.padre = padre;
     }
 
-    /**
-     * Función para gregar un nuevo símbolo.
-     * Esta función se usa en la sentencia de Declaración.
-     * @param {*} id 
-     * @param {*} tipo 
-     */
-    agregar(id, tipo) {
-        const nuevoSimbolo = crearSimbolo(id, tipo);
-        this._simbolos.push(nuevoSimbolo);
+    esLocal() {
+        return this.padre !== null;
     }
-
-    /**
-     * Función para actualizar el valor de un símbolo existente.
-     * Esta función se usa en la sentencia de Asignación.
-     * @param {*} id 
-     * @param {*} valor 
-     */
-    actualizar(id, valor) { //AQUI VAMOS A VALIDAR TIPOS
+   
+    agregar(id, tipo, tipodato,entorno,linea,columna) {
+        let tsrepetidos=[];
+        if (!this.buscar(id)) {
+            const nuevoSimbolo = crearSimbolo(id, tipo,tipodato,entorno,linea,columna);
+            this._simbolos.push(nuevoSimbolo);
+        } else {
+            console.error(`Error: el símbolo ${id} ya ha sido declarado`);
+            tsrepetidos.push({tipo:"Semantico",descripcion:`El símbolo ${id} ya ha sido declarado`,lineaerror:linea,columnaerror:columna});
+        }
+        return tsrepetidos;
+    }
+    buscar(id) {
+        let simbolo = this._simbolos.filter(simbolo => simbolo.id === id)[0];
+        if (simbolo) {
+            return simbolo;
+        } else {
+            return null;
+        }
+    }
+    actualizar(id, valor) { 
         const simbolo = this._simbolos.filter(simbolo => simbolo.id === id)[0];
+        let tsrepetidos=[];
+
         if (simbolo) {
             console.log("a cambiar: ",simbolo)
             console.log("a ----cambiar: ",valor)
@@ -95,30 +97,50 @@ class TS {
                         simbolo.valor = valor.valor;
                     }
                     console.log("cambio",simbolo)
+                }else if(simbolo.tipo==='METODO'){
+                    
+                        simbolo.valor = valor.valor;
+                    
+                    console.log("cambio",simbolo)
+                }else if(simbolo.tipo==='FUNCION'){
+                    
+                    simbolo.valor = valor.valor;
+                    console.log("cambio",simbolo)
                 }
-
-
-                
             }else{
-                throw 'ERROR DE TIPOS -> variable: ' + id + ' tiene tipo: '+simbolo.tipo +' y el valor a asignar es de tipo: '+valor.tipo;
+                tsrepetidos.push({tipo:"Semantico",descripcion:'variable: ' + id + ' tiene tipo: '+simbolo.tipo +' y el valor a asignar es de tipo: '+valor.tipo,lineaerror:simbolo.linea,columnaerror:simbolo.columna});
+                console.log( 'ERROR DE TIPOS -> variable: ' + id + ' tiene tipo: '+simbolo.tipo +' y el valor a asignar es de tipo: '+valor.tipo)
             }
+        } else if (this.padre) {
+            this.padre.actualizar(id, valor);
+        } else {
+            // manejar el caso en que el símbolo no se encuentra en ningún ámbito
+            tsrepetidos.push({tipo:"Semantico",descripcion:'variable: ' + id + ' no ha sido definida',lineaerror:simbolo.linea,columnaerror:simbolo.columna});
+            console.log( 'ERROR: variable: ' + id + ' no ha sido definida');
         }
-        else {
-            throw 'ERROR: variable: ' + id + ' no ha sido definida';
-        }
+        return tsrepetidos;
     }
 
-    /**
-     * Función para obtener el valor de un símbolo existente.
-     * @param {*} id 
-     */
+  
     obtener(id) {
-        const simbolo = this._simbolos.filter(simbolo => simbolo.id === id)[0];
-
-        if (simbolo) return simbolo; //aqui devolvemos el simbolo completo
-        else throw 'ERROR: variable: ' + id + ' no ha sido definida';
+        let tsrepetidos=[];
+        // Buscar la variable en la tabla de símbolos local
+        let variable = this._simbolos.filter(simbolo => simbolo.id === id)[0];
+        console.log("obteniendo dato ",variable, this.padre)
+        // Si no se encuentra la variable en la tabla de símbolos local
+        if (!variable && this.padre) {
+            // Buscar la variable en la tabla de símbolos padre
+            console.log("obtener padre")
+            variable = this.padre.obtener(id);
+        }
+        if(!variable&& this.padre==null){
+            console.log("es en obtener")
+            tsrepetidos.push({tipo:"Semantico",descripcion:'variable: ' + id + ' no ha sido definida',lineaerror:variable.linea,columnaerror:variable.columna});
+            console.log( 'ERROR: variable: ' + id + ' no ha sido definida')
+            return tsrepetidos;
+        }
+        return variable;
     }
-
     /**
      * Función getter para obtener los símbolos.
      */

@@ -3,56 +3,173 @@
     "tipo": "INSTR_DECLARACION",
     "identificador": "var1",
     "tipo_dato": "STRING",
-    "valor": ""
+    "valor": {
+      "valor": "",
+      "tipo_dato": "STRING"
+    },
+    "esGlobal": true,
+    "linea": 3,
+    "columna": 0
   },
   {
     "tipo": "INSTR_DECLARACION",
     "identificador": "var2",
     "tipo_dato": "BOOLEAN",
-    "valor": "true"
+    "valor": {
+      "valor": true,
+      "tipo_dato": "BOOLEAN"
+    },
+    "esGlobal": true,
+    "linea": 4,
+    "columna": 0
   },
   {
-    "tipo": "INSTR_DECLARACION",
-    "identificador": "var3",
-    "tipo_dato": "INT",
-    "valor": 0
+    "tipo": "METODO",
+    "tipodato": "void",
+    "id": "dat",
+    "parametros": [
+      {
+        "tipo": "INT",
+        "identificador": "b",
+        "linea": 6,
+        "columna": 13
+      },
+      {
+        "tipo": "BOOLEAN",
+        "identificador": "c",
+        "linea": 6,
+        "columna": 16
+      }
+    ],
+    "instrucciones": [
+      {
+        "tipo": "INSTR_DECLARACION",
+        "identificador": "a",
+        "tipo_dato": "STRING",
+        "valor": {
+          "valor": "",
+          "tipo_dato": "STRING"
+        },
+        "esGlobal": true,
+        "linea": 7,
+        "columna": 4
+      }
+    ],
+    "linea": 6,
+    "columna": 5
   },
   {
-    "tipo": "INSTR_DECLARACION",
-    "identificador": "var4",
-    "tipo_dato": "DOUBLE",
-    "valor": 0
-  },
-  {
-    "tipo": "INSTR_DECLARACION",
-    "identificador": "var5",
-    "tipo_dato": "CHAR",
-    "valor": "\u0000"
+    "tipo": "FUNCION",
+    "tipodato": "INT",
+    "id": "lis",
+    "parametros": [],
+    "instrucciones": [
+      {
+        "tipo": "INSTR_DECLARACION",
+        "identificador": "b",
+        "tipo_dato": "STRING",
+        "valor": {
+          "valor": "",
+          "tipo_dato": "STRING"
+        },
+        "esGlobal": true,
+        "linea": 11,
+        "columna": 5
+      },
+      {
+        "tipo": "SENTENCIA DE TRANSFERENCIA",
+        "tipodato": "RETURN",
+        "expresionNumerica": {
+          "tipo": "VAL_IDENTIFICADOR",
+          "valor": "b",
+          "linea": 12,
+          "columna": 12
+        },
+        "linea": 12,
+        "columna": 5
+      }
+    ],
+    "linea": 10,
+    "columna": 0
   },
   {
     "tipo": "INSTR_DECLARACION_CON_ASIGNACION",
-    "identificador": "a2",
+    "identificador": "var5",
+    "tipo_dato": "INT",
+    "valor": {
+      "tipo": "LLAMADA",
+      "identificador": "lis",
+      "argumentos": [],
+      "linea": 14,
+      "columna": 10
+    },
+    "esGlobal": true,
+    "linea": 14,
+    "columna": 0
+  },
+  {
+    "tipo": "INSTR_DECLARACION_CON_ASIGNACION",
+    "identificador": "er",
     "tipo_dato": "BOOLEAN",
     "valor": {
-      "operandoIzq": {
-        "operandoIzq": {
-          "operandoIzq": {
-            "tipo": "VAL_INT",
-            "valor": 1
-          },
-          "operandoDer": {
-            "tipo": "VAL_INT",
-            "valor": 2
-          },
-          "tipo": "OP_RESTA"
-        },
-        "operandoDer": {
+      "tipo": "VAL_BOOLEAN",
+      "valor": "true",
+      "linea": 15,
+      "columna": 13
+    },
+    "esGlobal": true,
+    "linea": 15,
+    "columna": 0
+  },
+  {
+    "tipo": "INSTR_ASIGANCION",
+    "identificador": "var1",
+    "expresionNumerica": {
+      "tipo": "LLAMADA",
+      "identificador": "lis",
+      "argumentos": [],
+      "linea": 16,
+      "columna": 7
+    },
+    "linea": 16,
+    "columna": 0
+  },
+  {
+    "tipo": "INSTR_ASIGANCION",
+    "identificador": "var1",
+    "expresionNumerica": {
+      "tipo": "VAL_STRING",
+      "valor": "hola",
+      "linea": 17,
+      "columna": 5
+    },
+    "linea": 17,
+    "columna": 0
+  },
+  {
+    "tipo": "SENTENCIA_MAIN",
+    "id": "main",
+    "run": {
+      "tipo": "LLAMADA",
+      "identificador": "dat",
+      "argumentos": [
+        {
           "tipo": "VAL_INT",
-          "valor": 0
+          "valor": 1,
+          "linea": 19,
+          "columna": 9
         },
-        "tipo": "OP_MENOR_QUE"
-      },
-      "tipo": "OP_NOT"
-    }
+        {
+          "tipo": "VAL_IDENTIFICADOR",
+          "valor": "var2",
+          "linea": 19,
+          "columna": 11
+        }
+      ],
+      "linea": 19,
+      "columna": 5
+    },
+    "linea": 19,
+    "columna": 0
   }
 ]

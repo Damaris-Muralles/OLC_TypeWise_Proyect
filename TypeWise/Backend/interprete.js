@@ -3,11 +3,11 @@ var parser = require('./gramatica');
 
 // Constantes para operaciones, instrucciones y valores
 const TIPO_INSTRUCCION = require('./instrucciones').TIPO_INSTRUCCION;
-const TIPO_OPERACION = require('./instrucciones').TIPO_OPERACION;
+const TIPO_EXPRESION = require('./instrucciones').TIPO_EXPRESION;
 const TIPO_VALOR = require('./instrucciones').TIPO_VALOR;
 const instruccionesAPI = require('./instrucciones').instruccionesAPI;
 const TIPO_OPCION_SWITCH = require('./instrucciones').TIPO_OPCION_SWITCH;
-
+const errores = require('./instrucciones').errores;
 // Tabla de Simbolos
 const TIPO_DATO = require('./tabla_simbolos').TIPO_DATO;
 const TS = require('./tabla_simbolos').TS;
@@ -17,7 +17,9 @@ try {
     // leemos nuestro archivo de entrada
     const entrada = fs.readFileSync('./entrada.txt');
     // invocamos a nuestro parser con el contendio del archivo de entradas
-    ast = parser.parse(entrada.toString());
+   
+  
+        ast = parser.parse(entrada.toString());
 
     // imrimimos en un archivo el contendio del AST en formato JSON
     fs.writeFileSync('./ast.json', JSON.stringify(ast, null, 2));
@@ -26,11 +28,20 @@ try {
     return;
 }
 
-// Creación de una tabla de simbolos GLOBAL para iniciar con el interprete
-const tsGlobal = new TS([]);
 
+// Crear una tabla de símbolos para el ámbito global
+const tsGlobal = new TS([], null);
+let erroreslist=[];
+let entorno="Global";
+let tsReporte = [];
+if (errores.length>0){
+ console.log("si funciona errores: ")
+}else{
 // Procesamos las instrucciones reconocidas en nuestro AST
-procesarBloque(ast, tsGlobal);
+procesarInstrucionesGlobales(ast, tsGlobal);
+}
+
+
 
 
 /**
@@ -39,92 +50,289 @@ procesarBloque(ast, tsGlobal);
  * @param {*} instrucciones 
  * @param {*} tablaDeSimbolos 
  */
-function procesarBloque(instrucciones, tablaDeSimbolos) {
-    instrucciones.forEach(instruccion => {
-   
-        if (instruccion.tipo === TIPO_INSTRUCCION.DECLARACION) {
-            // Procesando Instrucción Declaración
-           
-            procesarDeclaracion(instruccion, tablaDeSimbolos);
-        } else if (instruccion.tipo === TIPO_INSTRUCCION.DECLARACION_CON_ASIGNACION) {
-            // Procesando Instrucción Declaración y asignacion
-           
-            procesarDecAsig(instruccion, tablaDeSimbolos);
-        } else if (instruccion.tipo === TIPO_INSTRUCCION.ASIGNACION) {
-            // Procesando Instrucción Asignación
-            procesarAsignacion(instruccion, tablaDeSimbolos);
-        } else if (instruccion.tipo === TIPO_INSTRUCCION.ASIGNACION_SIMPLIFICADA) {
-            // Procesando Instrucción Asignacion Simplificada
-            procesarAsignacionSimplificada(instruccion, tablaDeSimbolos);
-        }  else if (instruccion.tipo === TIPO_INSTRUCCION.PRINT) {
-            // Procesando Instrucción PRINT
-            procesarPRINT(instruccion, tablaDeSimbolos);
-        } else if (instruccion.tipo === TIPO_INSTRUCCION.WHILE) {
-            // Procesando Instrucción WHILE
-            procesarWHILE(instruccion, tablaDeSimbolos);
-        } else if (instruccion.tipo == TIPO_INSTRUCCION.PARA) {
-            // Procesando Instrucción Para
-            procesarPara(instruccion, tablaDeSimbolos);
-        } else if (instruccion.tipo === TIPO_INSTRUCCION.IF) {
-            // Procesando Instrucción If
-            procesarIf(instruccion, tablaDeSimbolos);
-        } else if (instruccion.tipo === TIPO_INSTRUCCION.IF_ELSE) {
-            // Procesando Instrucción If Else
-            procesarIfElse(instruccion, tablaDeSimbolos);
-        } else if (instruccion.tipo === TIPO_INSTRUCCION.SWITCH) {
-            // Procesando Instrucción Switch  
-            procesarSwitch(instruccion, tablaDeSimbolos);
-        } else {
-            throw 'ERROR: tipo de instrucción no válido: ' + instruccion;
+function procesarInstrucionesGlobales(instrucciones, tablaDeSimbolos) {
+     // procesamos las funciones globales
+     instrucciones.forEach(instruccion => {
+        if (instruccion.tipo === TIPO_INSTRUCCION.FUNCIONES) {
+            console.log("busqueda 1")
+            procesarDeclaracionFuncion(instruccion, tablaDeSimbolos);
+        } else if (instruccion.tipo === TIPO_INSTRUCCION.METODOS) {
+            console.log("busqueda 2")
+            procesarDeclaracionFuncion(instruccion, tablaDeSimbolos);
         }
     });
+
+    // procesamos las declaraciones globales
+    instrucciones.forEach(instruccion => {
+        if (instruccion.tipo === TIPO_INSTRUCCION.DECLARACION) {
+          
+            procesarDeclaracion(instruccion, tablaDeSimbolos);
+      
+        } else if (instruccion.tipo === TIPO_INSTRUCCION.DECLARACION_CON_ASIGNACION) {
+    
+            procesarDecAsig(instruccion, tablaDeSimbolos);
+        }else if (instruccion.tipo === TIPO_INSTRUCCION.ASIGNACION) {
+            // Procesando Instrucción Asignación
+            procesarAsignacion(instruccion, tablaDeSimbolos, 0);
+        }  
+    });
+
+    // Luego buscamos y ejecutamos la función main
+    if (erroreslist.length==0){
+        const mains = instrucciones.filter(instruccion => instruccion.tipo === TIPO_INSTRUCCION.PRINCIPAL);
+        if (mains.length > 1) {
+            console.error('Error: solo puede haber una función main');
+            erroreslist.push({tipo:"Semantico",descripcion:'La funcion main solo puede ser definida una vez',lineaerror:mains[0].linea,columnaerror:mains[0].columna});
+        } else if (mains.length === 1) {
+            const main = mains[0];
+            tablaDeSimbolos.agregar(main.run.identificador+" - exec",main.tipo,main.run.tipo,"Global",main.linea,main.columna)
+            
+            tsReporte.push(tablaDeSimbolos.obtener(main.run.identificador+" - exec"));
+            console.log("puxh")
+            //procesarFuncion(main.run,tablaDeSimbolos)
+            console.log("funcionsalir: ", main)
+        } else {
+            console.error('No se encontró la función main');
+            erroreslist.push({tipo:"Semantico",descripcion:'La funcion main no se encuentra definida',lineaerror:mains[0].linea,columnaerror:mains[0].columna});
+        }
+    }else{
+        console.log("inmprimeir error");
+    }
+
+}
+
+function procesarDeclaracionFuncion(instruccion, tablaDeSimbolos) {
+    const nombreFuncion = instruccion.id;
+    
+    
+    let res = tablaDeSimbolos.agregar(nombreFuncion, instruccion.tipo,instruccion.tipodato,"Global",instruccion.linea,instruccion.columna);
+    if (res.length==0){
+
+            tablaDeSimbolos.actualizar(nombreFuncion,{tipo_dato:instruccion.tipo,valor:{parametros:instruccion.parametros,instrucciones:instruccion.instrucciones}} );
+            tsReporte.push(tablaDeSimbolos.obtener(nombreFuncion));
+            console.log("+++++++++++++++++++++++++++++++++++++:")
+            console.log("REPORTE", tsReporte)
+            console.log("+++++++++++++++++++++++++++++++++++++")
+    }else{
+        console.log("hay error", res)
+       erroreslist.push(...res);
+    }
+    
+    
+    
+}
+
+function procesarFuncion(instruccion, tablaDeSimbolos) {
+    let datosfuncion=tablaDeSimbolos.obtener(instruccion.identificador);
+    console.log("dsef",datosfuncion)
+    entorno=datosfuncion.tipo.toUpperCase()+" "+datosfuncion.id.toUpperCase();
+    if(datosfuncion){
+       // Procesar las instrucciones dentro de la función utilizando la tabla de símbolos del ámbito de la función
+       console.log("entro", datosfuncion.valor.parametros.length>0)
+       let coinciden=[];
+       const tsFuncion = new TS([], tablaDeSimbolos);
+
+       if (datosfuncion.valor.parametros.length>0){
+             console.log("si")
+            if(instruccion.argumentos.length==datosfuncion.valor.parametros.length){
+                console.log("si")
+                for (let i = 0; i < instruccion.argumentos.length; i++){
+                    console.log("si")
+                    let comparando;
+                    let parametrodato;
+                    if(instruccion.argumentos[i].tipo== TIPO_VALOR.IDENTIFICADOR){
+
+                       parametrodato= tablaDeSimbolos.obtener(instruccion.argumentos[i].valor);
+                       console.log("datosd ",parametrodato.tipo,datosfuncion.valor.parametros[i].tipo)
+                        comparando=parametrodato.tipo==datosfuncion.valor.parametros[i].tipo;
+
+                    }else{
+                        parametrodato=instruccion.argumentos[i];
+                        comparando=instruccion.argumentos[i].tipo.includes(datosfuncion.valor.parametros[i].tipo)
+                    }
+                    if (!comparando){
+                        coinciden.push(instruccion.argumentos[i]);
+                    }else{
+                        console.log(datosfuncion.valor.parametros[i],datosfuncion.valor.parametros[i].tipo);
+                        console.log(datosfuncion.valor.parametros[i].identificador,parametrodato)
+                        tsFuncion.agregar(datosfuncion.valor.parametros[i].identificador,datosfuncion.valor.parametros[i].tipo,parametrodato.tipo,entorno,datosfuncion.valor.parametros[i].linea,datosfuncion.valor.parametros[i].columna);
+                        tsFuncion.actualizar(datosfuncion.valor.parametros[i].identificador,{tipo:datosfuncion.valor.parametros[i].tipo, valor:parametrodato.valor});
+                       
+                        tsReporte.push(tsFuncion.obtener(datosfuncion.valor.parametros[i].identificador));
+                        
+                    }    
+                }    
+            }else{   
+                console.error("la funcion necesita parametros");
+                erroreslist.push({tipo:"Semantico",descripcion:'La funcion ' + datosfuncion.id + 'requiere de parametros',lineaerror:instruccion.linea,columnaerror:instruccion.columna});
+            }
+       }
+        
+       if (coinciden.length>0){
+            console.error("dato no coincide con el tipo de parametro en funcion")
+            for (let i = 0; i < coinciden.length; i++){
+                erroreslist.push({tipo:"Semantico",descripcion:'El dato' + coinciden[i].valor + 'no coincide con el tipo de parametres requeridos',lineaerror:coinciden[i].linea,columnaerror:coinciden[i].columna});
+            }
+        }else{
+            console.log("+++++++++++++++++++++++++++++++++++++:")
+            console.log("REPORTE EN FUNCION:", tsReporte)
+            console.log("+++++++++++++++++++++++++++++++++++++")
+            console.log(datosfuncion)
+            let datbloque
+            if(datosfuncion.tipo=="FUNCION"){
+                datbloque=procesarBloque(datosfuncion.valor.instrucciones, tsFuncion,1);
+            }else{
+                datbloque=procesarBloque(datosfuncion.valor.instrucciones, tsFuncion,0);
+            }
+           
+            return datbloque
+            
+        }
+
+
+    }else{
+        console.error("funcion no definida: ", instruccion.identificador)
+        erroreslist.push({tipo:"Semantico",descripcion:'La funcion ' + datosfuncion.id + ' no ha sido definida',lineaerror:instruccion.linea,columnaerror:instruccion.columna});
+    }
+   
+ 
+}
+
+function procesarBloque(instrucciones, tablaDeSimbolos,fun) {
+    
+    instrucciones.forEach(instruccion => {
+        if (erroreslist.length==0){
+            console.log("iiiiiiii",instruccion)
+            if (instruccion.tipo === TIPO_INSTRUCCION.DECLARACION) {
+                // Procesando Instrucción Declaración
+               
+                procesarDeclaracion(instruccion, tablaDeSimbolos);
+            } else if (instruccion.tipo === TIPO_INSTRUCCION.DECLARACION_CON_ASIGNACION) {
+                // Procesando Instrucción Declaración y asignacion
+               
+                procesarDecAsig(instruccion, tablaDeSimbolos);
+            } else if (instruccion.tipo === TIPO_INSTRUCCION.ASIGNACION) {
+                // Procesando Instrucción Asignación
+                procesarAsignacion(instruccion, tablaDeSimbolos, 1);
+            } else if (instruccion.tipo === TIPO_EXPRESION.LLAMADA) {
+                // Procesando Instrucción de metodo
+                procesarFuncion(instruccion,tablaDeSimbolos)  
+            } else if (instruccion.tipo === TIPO_INSTRUCCION.ASIGNACION_SIMPLIFICADA) {
+                // Procesando Instrucción Asignacion Simplificada
+                procesarAsignacionSimplificada(instruccion, tablaDeSimbolos);
+            } else if (instruccion.tipo === TIPO_INSTRUCCION.PRINT) {
+                // Procesando Instrucción PRINT
+                procesarPRINT(instruccion, tablaDeSimbolos);
+            } else if (instruccion.tipo === TIPO_INSTRUCCION.WHILE) {
+                // Procesando Instrucción WHILE
+                procesarWHILE(instruccion, tablaDeSimbolos);
+            } else if (instruccion.tipo == TIPO_INSTRUCCION.PARA) {
+                // Procesando Instrucción Para
+                procesarPara(instruccion, tablaDeSimbolos);
+            } else if (instruccion.tipo === TIPO_INSTRUCCION.IF) {
+                // Procesando Instrucción If
+                procesarIf(instruccion, tablaDeSimbolos);
+            } else if (instruccion.tipo === TIPO_INSTRUCCION.IF_ELSE) {
+                // Procesando Instrucción If Else
+                procesarIfElse(instruccion, tablaDeSimbolos);
+            } else if (instruccion.tipo === TIPO_INSTRUCCION.SWITCH) {
+                // Procesando Instrucción Switch  
+                procesarSwitch(instruccion, tablaDeSimbolos);
+            } else if ((instruccion.tipodato === TIPO_EXPRESION.RETORNO)&&(fun==1)) {
+                // Procesando Instrucción Switch  
+                console.log("------",instruccion)
+                return "funcion---------"//procesarRetorno(instruccion, tablaDeSimbolos);
+            }else {
+                console.log( 'ERROR: tipo de instrucción no válido: ' + instruccion);
+                erroreslist.push({tipo:"Semantico",descripcion:'Tipo de instruccion no valida',lineaerror:instruccion.linea,columnaerror:instruccion.columna});
+            }
+        }
+        
+    });
+    return null;
+
 }
 
 
-/**
- * Función que se encarga de procesar la instrucción Declaración
- * @param {*} instruccion 
- * @param {*} tablaDeSimbolos 
- */
-function procesarDeclaracion(instruccion, tablaDeSimbolos) { //aqui cambiamos para que acepte el tipo_dato de la declaracion
-    tablaDeSimbolos.agregar(instruccion.identificador, instruccion.tipo_dato);
-    tablaDeSimbolos.actualizar(instruccion.identificador, instruccion);
+function procesarCall(instruccion, tablaDeSimbolos) {
+    // Buscar la función en la tabla de símbolos
+    const funcion = tablaDeSimbolos.obtenerFuncion(instruccion.id);
+
+    // Verificar si la función existe
+    if (funcion) {
+        // Llamar a la función procesarFuncion para ejecutar la función
+        procesarFuncion(funcion.instrucciones, tablaDeSimbolos);
+    } else {
+        console.error(`No se encontró la función ${instruccion.id}`);
+    }
 }
-/**
- * Función que se encarga de procesar la instrucción Asignación
- * @param {*} instruccion 
- * @param {*} tablaDeSimbolos 
- */
+
+function procesarLlamadaFuncion(instruccion, tablaDeSimbolos) {
+    const nombreFuncion = instruccion.nombre;
+    const funcion = tablaDeSimbolos.obtener(nombreFuncion);
+    if (funcion) {
+        // Procesar la llamada a la función
+    } else {
+        console.error(`Error: la función ${nombreFuncion} no está definida en el ámbito global`);
+    }
+}
+
+
+
+function procesarDeclaracion(instruccion, tablaDeSimbolos) { 
+   tablaDeSimbolos.agregar(instruccion.identificador,instruccion.tipo_dato,instruccion.tipo,entorno,instruccion.linea,instruccion.columna);
+    tablaDeSimbolos.actualizar(instruccion.identificador, instruccion.valor);
+    
+}
+
 function procesarDecAsig(instruccion, tablaDeSimbolos) {
-    tablaDeSimbolos.agregar(instruccion.identificador, instruccion.tipo_dato);
-    console.log("===========decasif: ",instruccion,instruccion.valor)
-    const valor = procesarExpresionCadena(instruccion.valor, tablaDeSimbolos); //aqui quiero que retorne: tipo y valor
-    console.log("valor ",valor)
-    tablaDeSimbolos.actualizar(instruccion.identificador, valor);
+    console.log("Declaracionasig", instruccion)
+    if (instruccion.valor.tipo=="LLAMADA"){
+        let datosfuncion=tablaDeSimbolos.obtener(instruccion.valor.identificador);
+        if (datosfuncion.tipo=="FUNCION"){
+            tablaDeSimbolos.agregar(instruccion.identificador,instruccion.tipo_dato,instruccion.tipo,entorno,instruccion.linea,instruccion.columna);
+          
+            console.log("===========decasif: ",instruccion,instruccion.valor)
+            const valor = procesarFuncion(instruccion.valor, tablaDeSimbolos); //aqui quiero que retorne: tipo y valor
+            console.log("valor ",valor)
+            tablaDeSimbolos.actualizar(instruccion.identificador, valor);
+        }else{
+            erroreslist.push({tipo:"Semantico",descripcion:'No se puede asignar un metodo a variable',lineaerror:instruccion.linea,columnaerror:instruccion.columna});
+        }
+    }else{
+      /*  tablaDeSimbolos.agregar(instruccion.identificador,instruccion.tipo_dato,instruccion.tipo,entorno,instruccion.linea,instruccion.columna);
+        console.log("===========decasif: ",instruccion,instruccion.valor)
+        const valor = procesarExpresionCadena(instruccion.valor, tablaDeSimbolos); //aqui quiero que retorne: tipo y valor
+        console.log("valor ",valor)
+        tablaDeSimbolos.actualizar(instruccion.identificador, valor);*/
+        console.log("no es")
+    }
+    
 }
-/**
- * Función que se encarga de procesar la instrucción Asignación
- * @param {*} instruccion 
- * @param {*} tablaDeSimbolos 
- */
-function procesarAsignacion(instruccion, tablaDeSimbolos) {
-    console.log("===========asug: ",instruccion,instruccion.expresionNumerica)
-    const valor = procesarExpresionCadena(instruccion.expresionNumerica, tablaDeSimbolos); //aqui quiero que retorne: tipo y valor
-    console.log("valor ",valor)
-    tablaDeSimbolos.actualizar(instruccion.identificador, valor);
+
+function procesarAsignacion(instruccion, tablaDeSimbolos,desdelocal) {
+    console.log("asignacion: ", instruccion,tablaDeSimbolos)
+   /* const variable = tablaDeSimbolos.obtener(instruccion.identificador);
+    console.log("sdfew",variable)
+    // Verificar si la variable es global y si estamos dentro de una función
+    if (variable.esGlobal && tablaDeSimbolos.esLocal()&& desdelocal==0) {
+        console.log(`No se puede reasignar la variable global ${instruccion.id} dentro de una función`);
+        
+    }else{
+        console.log("===========asug: ",instruccion,instruccion.expresionNumerica)
+        // Realizar la asignación
+        const valor = procesarExpresionNumerica(instruccion.expresionNumerica, tablaDeSimbolos);
+        console.log("valor ",valor);
+        tablaDeSimbolos.actualizar(instruccion.identificador, valor);
+    }*/
+
 }
-/**
- * De acuerdo con nuestra gramática, aqui, expresión puede ser una operación aritmética binaria (SUMA, RESTA, MULTIPLICACION, DIVISION),
- * una operación aritmética unaria (NEGATIVO) o un valor correspondiente a un INT o a un IDENTIFICADOR
- * @param {*} expresion 
- * @param {TS} tablaDeSimbolos
- * Evaluamos cada caso para resolver a un valor tipo número de acuerdo al tipo de operación.
- */
+
 function procesarExpresionNumerica(expresion, tablaDeSimbolos) {
     
     let tipop=0;
     console.log("eererecd",expresion)
-    if (expresion.tipo === TIPO_OPERACION.NEGATIVO) {
+    if (expresion.tipo === TIPO_EXPRESION.NEGATIVO) {
         // Es un valor negado.
         // En este caso necesitamos procesar el valor del operando para poder negar su valor.
         // Para esto invocamos (recursivamente) esta función para sesolver el valor del operando.
@@ -144,7 +352,7 @@ function procesarExpresionNumerica(expresion, tablaDeSimbolos) {
         
         
 
-    } else if ([TIPO_OPERACION.SUMA,TIPO_OPERACION.RESTA, TIPO_OPERACION.MULTIPLICACION,TIPO_OPERACION.DIVISION,TIPO_OPERACION.POTENCIA,TIPO_OPERACION.MODULO].includes(expresion.tipo)) {
+    } else if ([TIPO_EXPRESION.SUMA,TIPO_EXPRESION.RESTA, TIPO_EXPRESION.MULTIPLICACION,TIPO_EXPRESION.DIVISION,TIPO_EXPRESION.POTENCIA,TIPO_EXPRESION.MODULO].includes(expresion.tipo)) {
 
             console.log("=====================================") 
             
@@ -156,7 +364,7 @@ function procesarExpresionNumerica(expresion, tablaDeSimbolos) {
        
 
 
-        if (([TIPO_OPERACION.SUMA,TIPO_OPERACION.RESTA].includes(expresion.tipo)) 
+        if (([TIPO_EXPRESION.SUMA,TIPO_EXPRESION.RESTA].includes(expresion.tipo)) 
         && ([TIPO_DATO.BOOLEAN, TIPO_DATO.CHAR].includes(valorIzq.tipo) && [TIPO_DATO.BOOLEAN, TIPO_DATO.CHAR].includes(valorDer.tipo)
             ||(valorIzq.tipo === TIPO_DATO.STRING)
             ||(valorDer.tipo === TIPO_DATO.STRING))) {
@@ -164,7 +372,7 @@ function procesarExpresionNumerica(expresion, tablaDeSimbolos) {
                 console.log("para suma y resta boolean y char, y su combinacion")
             throw `ERROR: Operacion no valida; no se puede realizar ${expresion.tipo} entre ${valorIzq.tipo} y ${valorDer.tipo}`;
         
-        }else if (([TIPO_OPERACION.MULTIPLICACION,TIPO_OPERACION.DIVISION].includes(expresion.tipo) )
+        }else if (([TIPO_EXPRESION.MULTIPLICACION,TIPO_EXPRESION.DIVISION].includes(expresion.tipo) )
          && ((valorIzq.tipo === TIPO_DATO.BOOLEAN && [TIPO_DATO.BOOLEAN, TIPO_DATO.CHAR,TIPO_DATO.INT,TIPO_DATO.DOUBLE].includes(valorDer.tipo))
              ||(valorIzq.tipo === TIPO_DATO.CHAR && [TIPO_DATO.BOOLEAN, TIPO_DATO.CHAR].includes(valorDer.tipo))
              ||([TIPO_DATO.INT,TIPO_DATO.DOUBLE].includes(valorIzq.tipo) && valorDer.tipo === TIPO_DATO.BOOLEAN)
@@ -175,7 +383,7 @@ function procesarExpresionNumerica(expresion, tablaDeSimbolos) {
            throw `ERROR: Operacion no valida; no se puede realizar ${expresion.tipo} entre ${valorIzq.tipo} y ${valorDer.tipo}`;
        
            
-        }else if (( [TIPO_OPERACION.POTENCIA,TIPO_OPERACION.MODULO].includes(expresion.tipo)) 
+        }else if (( [TIPO_EXPRESION.POTENCIA,TIPO_EXPRESION.MODULO].includes(expresion.tipo)) 
         && ((![TIPO_DATO.INT, TIPO_DATO.DOUBLE].includes(valorIzq.tipo) || ![TIPO_DATO.INT, TIPO_DATO.DOUBLE].includes(valorDer.tipo)))){
                 
             console.log("para %^- solo puede ser int y double", valorIzq,valorDer)                                            
@@ -184,8 +392,14 @@ function procesarExpresionNumerica(expresion, tablaDeSimbolos) {
         }else{
             console.log(valorDer,valorIzq)
             if(valorIzq.tipo==TIPO_DATO.BOOLEAN){
-                valorIzq=(valorIzq.valor=="true" ? 1 : 0);
-                console.log("conver",valorDer)
+                if (typeof valorIzq.valor === "boolean") {
+                    valorIzq=(valorIzq.valor ? 1 : 0);
+                }else{
+                    if (typeof valorIzq.valor === "string") {
+                        valorIzq=(valorIzq.valor=="true" ? 1 : 0);
+                    }
+                }
+                
             }else if(valorIzq.tipo==TIPO_DATO.CHAR){
                 valorIzq=valorIzq.valor.charCodeAt(0);
                
@@ -197,9 +411,15 @@ function procesarExpresionNumerica(expresion, tablaDeSimbolos) {
             }
 
             if(valorDer.tipo==TIPO_DATO.BOOLEAN){
-                console.log("conver",valorDer.valor)
-                valorDer=(valorDer.valor=="true"  ? 1 : 0);
-                console.log(valorDer)
+                
+                if (typeof valorDer.valor === "boolean") {
+                    valorDer=(valorDer.valor ? 1 : 0);
+                }else{
+                    if (typeof valorDer.valor === "string") {
+                        valorDer=(valorDer.valor=="true" ? 1 : 0);
+                    }
+                }
+                
             }else if(valorDer.tipo==TIPO_DATO.CHAR){
                 valorDer=valorDer.valor.charCodeAt(0);
                 
@@ -212,7 +432,7 @@ function procesarExpresionNumerica(expresion, tablaDeSimbolos) {
             
         }
 
-        if (expresion.tipo === TIPO_OPERACION.SUMA){
+        if (expresion.tipo === TIPO_EXPRESION.SUMA){
             const res= valorIzq + valorDer;
             console.log("sum",valorIzq , valorDer,valorIzq + valorDer)
             if  (tipop==1){
@@ -222,7 +442,7 @@ function procesarExpresionNumerica(expresion, tablaDeSimbolos) {
             return { valor: res, tipo: TIPO_DATO.INT  };
             
         }
-        if (expresion.tipo === TIPO_OPERACION.RESTA) {
+        if (expresion.tipo === TIPO_EXPRESION.RESTA) {
             const res= valorIzq - valorDer;
             if  (tipop==1){
                 return { valor: parseFloat(res.toFixed(1)), tipo: TIPO_DATO.DOUBLE };
@@ -230,7 +450,7 @@ function procesarExpresionNumerica(expresion, tablaDeSimbolos) {
             }
             return { valor: res, tipo: TIPO_DATO.INT  };
         }
-        if (expresion.tipo === TIPO_OPERACION.MULTIPLICACION) {
+        if (expresion.tipo === TIPO_EXPRESION.MULTIPLICACION) {
             const res= valorIzq * valorDer;
             if  (tipop==1){
                 return { valor: parseFloat(res.toFixed(1)), tipo: TIPO_DATO.DOUBLE };
@@ -238,7 +458,7 @@ function procesarExpresionNumerica(expresion, tablaDeSimbolos) {
             }
             return { valor: res, tipo: TIPO_DATO.INT  };
         }
-        if (expresion.tipo === TIPO_OPERACION.POTENCIA) {
+        if (expresion.tipo === TIPO_EXPRESION.POTENCIA) {
             const res= Math.pow(valorIzq, valorDer);
             if  (tipop==1){
                 return { valor: parseFloat(res.toFixed(1)), tipo: TIPO_DATO.DOUBLE };
@@ -246,11 +466,11 @@ function procesarExpresionNumerica(expresion, tablaDeSimbolos) {
             }
             return { valor: res, tipo: TIPO_DATO.INT  };
         }
-        if (expresion.tipo === TIPO_OPERACION.MODULO) {
+        if (expresion.tipo === TIPO_EXPRESION.MODULO) {
             const res= valorIzq % valorDer;
             return { valor: parseFloat(res.toFixed(1)), tipo: TIPO_DATO.DOUBLE  };
         }
-        if (expresion.tipo === TIPO_OPERACION.DIVISION) {
+        if (expresion.tipo === TIPO_EXPRESION.DIVISION) {
           
             if(valorDer === 0){
                 throw 'ERROR: la division entre 0 da como resultado: '+valorIzq/valorDer;
@@ -280,6 +500,7 @@ function procesarExpresionNumerica(expresion, tablaDeSimbolos) {
     } else  if (expresion.tipo === TIPO_VALOR.IDENTIFICADOR) {
         // Es un identificador.
         // Obtenemos el valor de la tabla de simbolos
+        console.log("al obtenr ident, en ek numeriocp")
         const sym = tablaDeSimbolos.obtener(expresion.valor);
         console.log("iden: ",sym.tipo, sym.valor,)
         return {valor: sym.valor, tipo: sym.tipo};
@@ -288,15 +509,10 @@ function procesarExpresionNumerica(expresion, tablaDeSimbolos) {
     }
 }
 
-/**
- * De acuerdo con nuestra gramática, aqui, expresión puede ser una operacion CONCATENACION, CADENA o una expresión numérica
- * @param {*} expresion 
- * @param {TS} tablaDeSimbolos
- * Evaluamos cada caso para resolver a un valor tipo cadena de acuerdo al tipo de operación.
- */
+
 function procesarExpresionCadena(expresion, tablaDeSimbolos) {
     
-    if (expresion.tipo === TIPO_OPERACION.CONCATENACION) {
+    if (expresion.tipo === TIPO_EXPRESION.CONCATENACION) {
         // Es una operación de concatenación.
         // En este caso necesitamos procesar los operandos antes de realizar la concatenación.
         // Para esto invocamos (recursivamente) esta función para resolver los valores de los operandos.
@@ -328,7 +544,7 @@ function procesarExpresionCadena(expresion, tablaDeSimbolos) {
         // y retornamos su valor en cadena.
         console.log("eewer_ ",expresion)
     
-        if ([TIPO_VALOR.BOOLEAN,TIPO_OPERACION.SUMA,TIPO_OPERACION.RESTA, TIPO_OPERACION.MULTIPLICACION,TIPO_OPERACION.DIVISION,TIPO_OPERACION.POTENCIA,TIPO_OPERACION.MODULO,TIPO_OPERACION.NEGATIVO].includes(expresion.tipo)){
+        if ([TIPO_VALOR.BOOLEAN,TIPO_VALOR.INT,TIPO_VALOR.DOUBLE,TIPO_VALOR.CARACTER,TIPO_VALOR.CADENA,TIPO_VALOR.IDENTIFICADOR,TIPO_EXPRESION.SUMA,TIPO_EXPRESION.RESTA, TIPO_EXPRESION.MULTIPLICACION,TIPO_EXPRESION.DIVISION,TIPO_EXPRESION.POTENCIA,TIPO_EXPRESION.MODULO,TIPO_EXPRESION.NEGATIVO].includes(expresion.tipo)){
             return procesarExpresionNumerica(expresion, tablaDeSimbolos);
         }else{
             console.log("lsodf")
@@ -337,12 +553,7 @@ function procesarExpresionCadena(expresion, tablaDeSimbolos) {
         
     }
 }
-/**
- * De acuerdo con nuestra gramática, aqui, expresión puede ser una operación relacional MAYOR QUE, MENOR QUE, MAYOR IGUAL QUE, MENOR IGUAL QUE, IGUAL QUE o NO IGUAL QUE
- * @param {*} expresion 
- * @param {TS} tablaDeSimbolos
- * Evaluamos cada caso para resolver a un valor tipo booleando de acuerdo al tipo de operación.
- */
+
 function procesarExpresionRelacional(expresion, tablaDeSimbolos,op) {
     // En este caso necesitamos procesar los operandos antes de realizar la comparación.
     console.log(op)
@@ -367,7 +578,7 @@ function procesarExpresionRelacional(expresion, tablaDeSimbolos,op) {
         valorDer=valorDer.valor;
     }
 
-    if (expresion.tipo === TIPO_OPERACION.MAYOR_QUE) {
+    if (expresion.tipo === TIPO_EXPRESION.MAYOR_QUE) {
         console.log(valorIzq , valorDer,valorIzq > valorDer)
         if(op==1){
             console.log("deg")
@@ -376,7 +587,7 @@ function procesarExpresionRelacional(expresion, tablaDeSimbolos,op) {
         return valorIzq > valorDer;
     }
 
-    if (expresion.tipo === TIPO_OPERACION.MENOR_QUE) {
+    if (expresion.tipo === TIPO_EXPRESION.MENOR_QUE) {
 
         console.log(valorIzq , valorDer,valorIzq < valorDer)
         if(op==1){
@@ -386,19 +597,19 @@ function procesarExpresionRelacional(expresion, tablaDeSimbolos,op) {
         return valorIzq < valorDer;
     }
 
-    if (expresion.tipo === TIPO_OPERACION.MAYOR_IGUAL){
+    if (expresion.tipo === TIPO_EXPRESION.MAYOR_IGUAL){
         if(op==1){
             return { valor: valorIzq >= valorDer, tipo: TIPO_DATO.BOOLEAN };
         }
         return valorIzq >= valorDer;
     }
-    if (expresion.tipo === TIPO_OPERACION.MENOR_IGUAL){
+    if (expresion.tipo === TIPO_EXPRESION.MENOR_IGUAL){
         if(op===1){
             return { valor: valorIzq <= valorDer, tipo: TIPO_DATO.BOOLEAN };
         }
         return valorIzq <= valorDer;
     } 
-    if (expresion.tipo === TIPO_OPERACION.DOBLE_IGUAL){
+    if (expresion.tipo === TIPO_EXPRESION.DOBLE_IGUAL){
         console.log("sdfsdf1: ",valorIzq, valorDer,valorIzq == valorDer)
         if(op==1){
             console.log("sdfsdf: ",valorIzq, valorDer,valorIzq == valorDer)
@@ -406,7 +617,7 @@ function procesarExpresionRelacional(expresion, tablaDeSimbolos,op) {
         }
         return valorIzq == valorDer;
     }
-    if (expresion.tipo === TIPO_OPERACION.NO_IGUAL){
+    if (expresion.tipo === TIPO_EXPRESION.NO_IGUAL){
         if(op==1){
             return { valor: valorIzq !== valorDer, tipo: TIPO_DATO.BOOLEAN };
         }
@@ -414,61 +625,86 @@ function procesarExpresionRelacional(expresion, tablaDeSimbolos,op) {
     }
 }
 
-/**
- * De acuerdo con nuestra gramática, aqui, expresión puede ser una operación lógica AND, OR o NOT
- * @param {*} expresion 
- * @param {TS} tablaDeSimbolos
- * Evaluamos cada caso para resolver a un valor tipo booleando de acuerdo al tipo de operación.
- */
 function procesarExpresionLogica(expresion, tablaDeSimbolos,op) {
  console.log("1232 ",op, expresion)
  let valorIzq;
  let valorDer;
-    if (expresion.tipo === TIPO_OPERACION.AND) { 
+    if (expresion.tipo === TIPO_EXPRESION.AND) { 
         // En este caso necesitamos procesar los operandos para &&.  // resolvemos el operando derecho.
-        if (![TIPO_VALOR.BOOLEAN,TIPO_VALOR.INT,TIPO_VALOR.DOUBLE,TIPO_VALOR.CARACTER,TIPO_VALOR.CADENA,TIPO_VALOR.IDENTIFICADOR,TIPO_OPERACION.SUMA,TIPO_OPERACION.RESTA, TIPO_OPERACION.MULTIPLICACION,TIPO_OPERACION.DIVISION,TIPO_OPERACION.POTENCIA,TIPO_OPERACION.MODULO,TIPO_OPERACION.NEGATIVO].includes(expresion.operandoIzq.tipo) ){
+        if (![TIPO_VALOR.BOOLEAN,TIPO_VALOR.INT,TIPO_VALOR.DOUBLE,TIPO_VALOR.CARACTER,TIPO_VALOR.CADENA,TIPO_VALOR.IDENTIFICADOR,TIPO_EXPRESION.SUMA,TIPO_EXPRESION.RESTA, TIPO_EXPRESION.MULTIPLICACION,TIPO_EXPRESION.DIVISION,TIPO_EXPRESION.POTENCIA,TIPO_EXPRESION.MODULO,TIPO_EXPRESION.NEGATIVO].includes(expresion.operandoIzq.tipo) ){
             console.log(" q",expresion.operandoIzq)
             valorIzq =  procesarExpresionRelacional(expresion.operandoIzq, tablaDeSimbolos,op);   
         }else{
             valorIzq = procesarExpresionNumerica(expresion.operandoIzq, tablaDeSimbolos);   
         }
 
-        if (![TIPO_VALOR.BOOLEAN,TIPO_VALOR.INT,TIPO_VALOR.DOUBLE,TIPO_VALOR.CARACTER,TIPO_VALOR.CADENA,TIPO_VALOR.IDENTIFICADOR,TIPO_OPERACION.SUMA,TIPO_OPERACION.RESTA, TIPO_OPERACION.MULTIPLICACION,TIPO_OPERACION.DIVISION,TIPO_OPERACION.POTENCIA,TIPO_OPERACION.MODULO,TIPO_OPERACION.NEGATIVO].includes(expresion.operandoDer.tipo) ){
+        if (![TIPO_VALOR.BOOLEAN,TIPO_VALOR.INT,TIPO_VALOR.DOUBLE,TIPO_VALOR.CARACTER,TIPO_VALOR.CADENA,TIPO_VALOR.IDENTIFICADOR,TIPO_EXPRESION.SUMA,TIPO_EXPRESION.RESTA, TIPO_EXPRESION.MULTIPLICACION,TIPO_EXPRESION.DIVISION,TIPO_EXPRESION.POTENCIA,TIPO_EXPRESION.MODULO,TIPO_EXPRESION.NEGATIVO].includes(expresion.operandoDer.tipo) ){
             console.log(" q",expresion.operandoDer)
             valorDer =  procesarExpresionRelacional(expresion.operandoDer, tablaDeSimbolos,op);   
         }else{
             valorDer = procesarExpresionNumerica(expresion.operandoDer, tablaDeSimbolos);   
         }    
-       try {
-        valorDer=valorDer.valor;
-        valorIzq=valorIzq.valor;
+        try {
+            if (typeof valorIzq.valor === "boolean") {
+                valorIzq=valorIzq.valor;
+            }else{
+                if (typeof valorIzq.valor === "string") {
+                valorIzq=(valorIzq.valor=="true");
+                console.log("1",valorIzq)
+                }
+            }
+            if (typeof valorDer.valor === "boolean") {
+                valorDer=valorDer.valor;
+            }else{
+                if (typeof valorDer.valor === "string") {
+                    valorDer=(valorDer.valor=="true");
+                    console.log("1.",valorDer)
+                }
+            }
+       
        } catch (error) {
         console.log("sdfaqui11",valorDer,valorIzq)
        }
+       console.log(valorDer,valorIzq,valorIzq&&valorDer)
         if(op==1){
             return { valor: valorIzq && valorDer, tipo: TIPO_DATO.BOOLEAN };
         }
         return valorIzq && valorDer;
     }
-    if (expresion.tipo === TIPO_OPERACION.OR) { 
+    if (expresion.tipo === TIPO_EXPRESION.OR) { 
         // En este caso necesitamos procesar los operandos para ||.
         console.log("123 ",op, expresion)
-        if (![TIPO_VALOR.BOOLEAN,TIPO_VALOR.INT,TIPO_VALOR.DOUBLE,TIPO_VALOR.CARACTER,TIPO_VALOR.CADENA,TIPO_VALOR.IDENTIFICADOR,TIPO_OPERACION.SUMA,TIPO_OPERACION.RESTA, TIPO_OPERACION.MULTIPLICACION,TIPO_OPERACION.DIVISION,TIPO_OPERACION.POTENCIA,TIPO_OPERACION.MODULO,TIPO_OPERACION.NEGATIVO].includes(expresion.operandoIzq.tipo) ){
+        if (![TIPO_VALOR.BOOLEAN,TIPO_VALOR.INT,TIPO_VALOR.DOUBLE,TIPO_VALOR.CARACTER,TIPO_VALOR.CADENA,TIPO_VALOR.IDENTIFICADOR,TIPO_EXPRESION.SUMA,TIPO_EXPRESION.RESTA, TIPO_EXPRESION.MULTIPLICACION,TIPO_EXPRESION.DIVISION,TIPO_EXPRESION.POTENCIA,TIPO_EXPRESION.MODULO,TIPO_EXPRESION.NEGATIVO].includes(expresion.operandoIzq.tipo) ){
             console.log(" q",expresion.operandoIzq)
             valorIzq =  procesarExpresionRelacional(expresion.operandoIzq, tablaDeSimbolos,op);   
         }else{
             valorIzq = procesarExpresionNumerica(expresion.operandoIzq, tablaDeSimbolos);   
         }
 
-        if (![TIPO_VALOR.BOOLEAN,TIPO_VALOR.INT,TIPO_VALOR.DOUBLE,TIPO_VALOR.CARACTER,TIPO_VALOR.CADENA,TIPO_VALOR.IDENTIFICADOR,TIPO_OPERACION.SUMA,TIPO_OPERACION.RESTA, TIPO_OPERACION.MULTIPLICACION,TIPO_OPERACION.DIVISION,TIPO_OPERACION.POTENCIA,TIPO_OPERACION.MODULO,TIPO_OPERACION.NEGATIVO].includes(expresion.operandoDer.tipo) ){
+        if (![TIPO_VALOR.BOOLEAN,TIPO_VALOR.INT,TIPO_VALOR.DOUBLE,TIPO_VALOR.CARACTER,TIPO_VALOR.CADENA,TIPO_VALOR.IDENTIFICADOR,TIPO_EXPRESION.SUMA,TIPO_EXPRESION.RESTA, TIPO_EXPRESION.MULTIPLICACION,TIPO_EXPRESION.DIVISION,TIPO_EXPRESION.POTENCIA,TIPO_EXPRESION.MODULO,TIPO_EXPRESION.NEGATIVO].includes(expresion.operandoDer.tipo) ){
             console.log(" q",expresion.operandoDer)
             valorDer =  procesarExpresionRelacional(expresion.operandoDer, tablaDeSimbolos,op);   
         }else{
             valorDer = procesarExpresionNumerica(expresion.operandoDer, tablaDeSimbolos);   
         }    
        try {
-        valorDer=valorDer.valor;
-        valorIzq=valorIzq.valor;
+            if (typeof valorIzq.valor === "boolean") {
+                valorIzq=valorIzq.valor;
+            }else{
+                if (typeof valorIzq.valor === "string") {
+                valorIzq=(valorIzq.valor=="true");
+                console.log("1",valorIzq)
+                }
+            }
+            if (typeof valorDer.valor === "boolean") {
+                valorDer=valorDer.valor;
+            }else{
+                if (typeof valorDer.valor === "string") {
+                    valorDer=(valorDer.valor=="true");
+                    console.log("1.",valorDer)
+                }
+            }
+       
        } catch (error) {
         console.log("sdfaqui11",valorDer,valorIzq)
        }
@@ -481,21 +717,30 @@ function procesarExpresionLogica(expresion, tablaDeSimbolos,op) {
         }
         return valorIzq || valorDer;
     }
-    if (expresion.tipo === TIPO_OPERACION.NOT) { 
+    if (expresion.tipo === TIPO_EXPRESION.NOT) { 
         // En este caso necesitamos procesar solamente un operando para !.
         let valor ;
-        if (![TIPO_VALOR.BOOLEAN,TIPO_VALOR.INT,TIPO_VALOR.DOUBLE,TIPO_VALOR.CARACTER,TIPO_VALOR.CADENA,TIPO_VALOR.IDENTIFICADOR,TIPO_OPERACION.SUMA,TIPO_OPERACION.RESTA, TIPO_OPERACION.MULTIPLICACION,TIPO_OPERACION.DIVISION,TIPO_OPERACION.POTENCIA,TIPO_OPERACION.MODULO,TIPO_OPERACION.NEGATIVO].includes(expresion.operandoIzq.tipo) ){
+        if (![TIPO_VALOR.BOOLEAN,TIPO_VALOR.INT,TIPO_VALOR.DOUBLE,TIPO_VALOR.CARACTER,TIPO_VALOR.CADENA,TIPO_VALOR.IDENTIFICADOR,TIPO_EXPRESION.SUMA,TIPO_EXPRESION.RESTA, TIPO_EXPRESION.MULTIPLICACION,TIPO_EXPRESION.DIVISION,TIPO_EXPRESION.POTENCIA,TIPO_EXPRESION.MODULO,TIPO_EXPRESION.NEGATIVO].includes(expresion.operandoIzq.tipo) ){
             console.log(" q",expresion.operandoIzq)
             valor =  procesarExpresionRelacional(expresion.operandoIzq, tablaDeSimbolos,op);   
         }else{
             valor = procesarExpresionNumerica(expresion.operandoIzq, tablaDeSimbolos);   
         }
+        try {
+            if (typeof valor.valor === "boolean") {
+                valor=valor.valor;
+            }else{
+                if (typeof valor.valor === "string") {
+                    valor=(valor.valor=="true");
+                }
+            }
+        
+        
+        } catch (error) {
+            console.log("sdfaqui11",valorDer,valorIzq)
+        }
 
-       try {
-        valor=valor.valor;
-       } catch (error) {
-        console.log("sdfaqui11",valor)
-       }
+
         if(op==1){
             return { valor: !valor, tipo: TIPO_DATO.BOOLEAN };
         }
@@ -506,26 +751,34 @@ function procesarExpresionLogica(expresion, tablaDeSimbolos,op) {
 }
 
 
-/**
- * Función que se encarga de procesar la instrucción PRINT
- * @param {*} instruccion 
- * @param {*} tablaDeSimbolos 
- */
+
+
+
+
+
+
+
+
+
+
+
 function procesarPRINT(instruccion, tablaDeSimbolos) {
     const cadena = procesarExpresionCadena(instruccion.expresionCadena, tablaDeSimbolos).valor;
     console.log('> ' + cadena);
 }
 
 
-
-
-/**
- * Función que se encarga de procesar la instrucción WHILE
- */
 function procesarWHILE(instruccion, tablaDeSimbolos) {
-    while (procesarExpresionLogica(instruccion.expresionLogica, tablaDeSimbolos)) {
-        const tsWHILE = new TS(tablaDeSimbolos.simbolos);
-        procesarBloque(instruccion.instrucciones, tsWHILE);
+    // Crear una nueva tabla de símbolos para el ámbito del bucle while
+    const tsWhile = new TS(tablaDeSimbolos.simbolos);
+
+    // Evaluar la condición del bucle while
+    const condicion = procesarExpresionLogica(instruccion.expresionLogica, tsWhile);
+
+    // Mientras la condición sea verdadera
+    while (condicion) {
+        // Procesar las instrucciones dentro del bucle while utilizando la tabla de símbolos del ámbito del bucle
+        procesarBloque(instruccion.instrucciones, tsWhile);
     }
 }
 

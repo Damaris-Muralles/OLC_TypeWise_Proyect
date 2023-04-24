@@ -1,16 +1,16 @@
 
-// Constantes para los tipos de 'valores' que reconoce nuestra gramática.
+// Constantes para los tipos de 'valores' expresiones que reconoce nuestra gramática.
 const TIPO_VALOR = {
 	INT:        	'VAL_INT',
 	DOUBLE:        	'VAL_DOUBLE',
 	BOOLEAN:        'VAL_BOOLEAN',
 	CARACTER:       'VAL_CHAR',
 	IDENTIFICADOR:  'VAL_IDENTIFICADOR',
-	CADENA:         'VAL_CADENA',
+	CADENA:         'VAL_STRING',
 }
 
-// Constantes para los tipos de 'operaciones' que soporta nuestra gramática.
-const TIPO_OPERACION = {
+// Constantes para los tipos de 'operaciones', expresiones que soporta nuestra gramática.
+const TIPO_EXPRESION = {
 	SUMA:           'OP_SUMA',
 	RESTA:          'OP_RESTA',
 	MULTIPLICACION: 'OP_MULTIPLICACION',
@@ -19,18 +19,20 @@ const TIPO_OPERACION = {
 	POTENCIA:       'OP_POTENCIA',
 	MODULO:       	'OP_MODULO',
 
-	MAYOR_QUE:      'OP_MAYOR_QUE',
-	MENOR_QUE:      'OP_MENOR_QUE',
-	MAYOR_IGUAL: 	'OP_MAYOR_IGUAL',
-	MENOR_IGUAL:    'OP_MENOR_IGUAL',
-	DOBLE_IGUAL:    'OP_DOBLE_IGUAL',
-	NO_IGUAL:    	'OP_NO_IGUAL',
+	MAYOR_QUE:      'RELACIONAL_MAYOR_QUE',
+	MENOR_QUE:      'RELACIONAL_MENOR_QUE',
+	MAYOR_IGUAL: 	'RELACIONAL_MAYOR_IGUAL',
+	MENOR_IGUAL:    'RELACIONAL_MENOR_IGUAL',
+	DOBLE_IGUAL:    'RELACIONAL_DOBLE_IGUAL',
+	NO_IGUAL:    	'RELACIONAL_NO_IGUAL',
 
-	AND:  			'OP_AND',
-	OR: 			'OP_OR',
-	NOT:   			'OP_NOT',  	
-
-	CONCATENACION:  'OP_CONCATENACION'
+	AND:  			'LOGICO_AND',
+	OR: 			'LOGICO_OR',
+	NOT:   			'LOGICO_NOT',  	
+	
+	CONCATENACION:  'OP_CONCATENACION',
+	LLAMADA: 		'LLAMADA',
+	RETORNO:		'RETURN'
 };
 
 // Constantes para los tipos de 'instrucciones' válidas en nuestra gramática.
@@ -46,7 +48,10 @@ const TIPO_INSTRUCCION = {
 	SWITCH:			'SWITCH',
 	SWITCH_OP:		'SWITCH_OP',
 	SWITCH_DEF:		'SWITCH_DEF',
-	ASIGNACION_SIMPLIFICADA: 'ASIGNACION_SIMPLIFICADA'
+	ASIGNACION_SIMPLIFICADA: 'ASIGNACION_SIMPLIFICADA',
+	PRINCIPAL: 		'SENTENCIA_MAIN',
+	METODOS:        'METODO',
+	FUNCIONES:      'FUNCION'
 }
 
 // Constantes para los tipos de OPCION_SWITCH validas en la gramática
@@ -55,19 +60,14 @@ const TIPO_OPCION_SWITCH = {
 	DEFECTO: 		'DEFECTO'
 } 
 
-/**
- * Esta función se encarga de crear objetos tipo Operación.
- * Recibe como parámetros el operando izquierdo y el operando derecho.
- * También recibe como parámetro el tipo del operador
- * @param {*} operandoIzq 
- * @param {*} operandoDer 
- * @param {*} tipo 
- */
-function nuevaOperacion(operandoIzq, operandoDer, tipo) {
+let errores=[];
+function nuevaOperacion(operandoIzq, operandoDer, tipo,linea,columna) {
 	return {
 		operandoIzq: operandoIzq,
 		operandoDer: operandoDer,
-		tipo: tipo
+		tipo: tipo,
+		linea:linea,
+		columna: columna
 	}
 }
 
@@ -79,234 +79,245 @@ const instruccionesAPI = {
 
 	
 
-	/**
-	 * Crea un nuevo objeto tipo Valor, esto puede ser una cadena, un identificador,etc
-	 * @param {*} valor 
-	 * @param {*} tipo 
-	 */
-	nuevoValor: function(valor, tipo) {
+	nuevoValor: function(valor, tipo,linea,columna) {
 		return {
 			tipo: tipo,
-			valor: valor
+			valor: valor,
+			linea:linea,
+			columna: columna
 		}
 	},
 	
-
-	/**
-	 * Crea un objeto tipo Instrucción para la sentencia Declaración.
-	 * @param {*} identificador 
-	 */
-	nuevoDeclaracion: function(identificador, tipo) {
-		console.log(" identi:",identificador,tipo)
-		let valorpordefecto=0;
+	nuevoDeclaracion: function(identificador, tipo,esGlobal,linea,columna) {
+		console.log("inst_identi: ",identificador,tipo)
+		let valorpordefecto={valor:0,tipo_dato:tipo};
 		if (tipo=="DOUBLE"){
-			valorpordefecto=parseFloat(0.0);
+			valorpordefecto={valor:parseFloat(0.0),tipo_dato:tipo};
 		}else if(tipo=="BOOLEAN"){
-			valorpordefecto="true";
+			valorpordefecto={valor:true,tipo_dato:tipo};
 		}else if(tipo=="CHAR"){
-			valorpordefecto='\u0000';
+			valorpordefecto={valor:'\u0000',tipo_dato:tipo};
 		}else if(tipo=="STRING"){
-			valorpordefecto="";
+			valorpordefecto={valor:"",tipo_dato:tipo};
 		}
 		
 		return {
 			tipo: TIPO_INSTRUCCION.DECLARACION,
 			identificador: identificador,
 			tipo_dato: tipo,
-			valor: valorpordefecto
+			valor: valorpordefecto,
+			esGlobal: esGlobal,
+			linea:linea,
+			columna: columna
 		}
 	},
-	/**
-	 * Crea un objeto tipo Instrucción para la sentencia Declaración.
-	 * @param {*} identificador 
-	 * @param {*} expresionNumerica 
-	 */
-	nuevoDecAsig: function(identificador, tipo,  expresionNumerica, d) {
-		console.log("decrerwer: ",d)
+	
+	nuevoDecAsig: function(identificador, tipo,  expresionNumerica,esGlobal,linea,columna) {
+
 		return {
 			tipo: TIPO_INSTRUCCION.DECLARACION_CON_ASIGNACION,
 			identificador: identificador,
 			tipo_dato: tipo,
-			valor: expresionNumerica
+			valor: expresionNumerica,
+			esGlobal: esGlobal,
+			linea:linea,
+			columna: columna
 		}
 
 	},
-	/**
-	 * Crea un objeto tipo Instrucción para la sentencia Asignación.
-	 * @param {*} identificador 
-	 * @param {*} expresionNumerica 
-	 */
-	nuevoAsignacion: function(identificador, expresionNumerica) {
-		console.log(expresionNumerica)
+	nuevoAsignacion: function(identificador, expresionNumerica,linea,columna) {
+		
 		return {
 			tipo: TIPO_INSTRUCCION.ASIGNACION,
 			identificador: identificador,
-			expresionNumerica: expresionNumerica
+			expresionNumerica: expresionNumerica,
+			linea:linea,
+			columna: columna
 		}
 	},
 	
-	/**
-	* Crea un nuevo objeto tipo Operación para las operaciones binarias válidas.
-	* @param {*} operandoIzq 
-	* @param {*} operandoDer 
-	* @param {*} tipo 
-	*/
-	nuevoOperacionBinaria: function(operandoIzq, operandoDer, tipo) {
-		console.log("operaciones; ",operandoIzq,operandoDer)
-		return nuevaOperacion(operandoIzq, operandoDer, tipo);
+	nuevoMain: function(funcion,linea,columna) {
+		return {
+			tipo: TIPO_INSTRUCCION.PRINCIPAL,
+			id: "main",
+			run: funcion,
+			linea:linea,
+			columna: columna
+		}
+	},
+	nuevaFuncion: function(funcion,parametro,instruccion,tipo,tipodato,linea,columna) {
+		let tipofuncion= TIPO_INSTRUCCION.METODOS;
+		if(tipo=='FUNCION'){
+			tipofuncion= TIPO_INSTRUCCION.FUNCIONES;
+		}
+		return {
+			tipo: tipofuncion,
+			tipodato: tipodato,
+			id: funcion,
+			parametros: parametro,
+			instrucciones: instruccion,
+			linea:linea,
+			columna: columna
+		}
+	},
+	nuevoLlamadaFuncion: function(identificador, argumentos,linea,columna) {
+		return {
+			tipo: TIPO_EXPRESION.LLAMADA,
+			identificador: identificador,
+			argumentos: argumentos,
+			linea:linea,
+			columna: columna
+		}
+	},
+	nuevoOperacionBinaria: function(operandoIzq, operandoDer, tipo,linea,columna) {
+		console.log("inst_operaciones; ",operandoIzq,operandoDer)
+		return nuevaOperacion(operandoIzq, operandoDer, tipo,linea,columna);
 	},
  
-	/**
-	 * Crea un nuevo objeto tipo Operación para las operaciones unarias válidas
-	 * @param {*} operando 
-	 * @param {*} tipo 
-	 */
-	nuevoOperacionUnaria: function(operando, tipo) {
-		return nuevaOperacion(operando, undefined, tipo);
+	
+	nuevoOperacionUnaria: function(operando, tipo,linea,columna) {
+		return nuevaOperacion(operando, undefined, tipo,linea,columna);
 	},
  
- 
-	/**
-	 * Crea un objeto tipo Instrucción para la sentencia Asignacion con Operador
-	 * @param {*} identificador 
-	 * @param {*} operador 
-	 * @param {*} expresionCadena 
-	 */
-	nuevoAsignacionSimplificada: function(identificador, operador , expresionNumerica){
+	nuevoReturn: function(expresionNumerica, linea,columna) {
+		return {
+			tipo: "SENTENCIA DE TRANSFERENCIA",
+			tipodato:TIPO_EXPRESION.RETORNO,
+			expresionNumerica: expresionNumerica,
+			linea:linea,
+			columna: columna
+		}
+	},
+
+	nuevoAsignacionSimplificada: function(identificador, operador , expresionNumerica,linea, columna){
 		return{
 			tipo: TIPO_INSTRUCCION.ASIGNACION_SIMPLIFICADA,
 			operador : operador,
 			expresionNumerica: expresionNumerica,
-			identificador : identificador
+			identificador : identificador,
+			linea: linea,
+			columna: columna,
+
 		} 
 	},
-	/**
-	 * Crea un objeto tipo Instrucción para la sentencia PRINT.
-	 * @param {*} expresionCadena 
-	 */
-	nuevoPRINT: function(expresionCadena) {
+	
+	nuevoPRINT: function(expresionCadena,linea,columna) {
 		return {
-			tipo: TIPO_INSTRUCCION.PRINT,
-			expresionCadena: expresionCadena
+			tipo: "FUNCION",
+			tipodato: TIPO_INSTRUCCION.PRINT,
+			expresionCadena: expresionCadena,
+			linea:linea,
+			columna: columna
 		};
 	},
+	
 
-	/**
-	 * Crea un objeto tipo Instrucción para la sentencia WHILE.
-	 * @param {*} expresionLogica 
-	 * @param {*} instrucciones 
-	 */
-	nuevoWHILE: function(expresionLogica, instrucciones) {
+	nuevoWHILE: function(expresionLogica, instrucciones,linea,columna) {
 		return {
-			tipo: TIPO_INSTRUCCION.WHILE,
+			tipo: "SENTENCIA CICLICA",
+			tipodato:TIPO_INSTRUCCION.WHILE,
 			expresionLogica: expresionLogica,
 			instrucciones: instrucciones
 		};
 	},
 
-	/**
-	 * Crea un objeto tipo instrucción para la sentencia Para.
-	 * @param {*} expresionLogica
-	 * @param {*} instrucciones
-	 * @param {*} aumento
-	 * @param {*} decremento
-	 */
-	nuevoPara: function (variable, valorVariable, expresionLogica, aumento, instrucciones) {
+	nuevoPara: function (variable, valorVariable, expresionLogica, aumento, instrucciones,linea,columna) {
 		return {
-			tipo: TIPO_INSTRUCCION.PARA,
+			tipo: "SENTENCIA CICLICA",
+			tipodato:TIPO_INSTRUCCION.PARA,
 			expresionLogica: expresionLogica,
 			instrucciones: instrucciones,
 			aumento: aumento,
 			variable: variable,
-			valorVariable: valorVariable
+			valorVariable: valorVariable,
+			linea:linea,
+			columna: columna
 		}
 	},
-	/**
-	 * Crea un objeto tipo Instrucción para la sentencia If.
-	 * @param {*} expresionLogica 
-	 * @param {*} instrucciones 
-	 */
-	nuevoIf: function(expresionLogica, instrucciones) {
+	
+	nuevoIf: function(expresionLogica, instrucciones,linea,columna) {
 		return {
-			tipo: TIPO_INSTRUCCION.IF,
+			tipo: "SENTENCIA DE CONTROL",
+			tipodato:TIPO_INSTRUCCION.IF,
 			expresionLogica: expresionLogica,
-			instrucciones: instrucciones
+			instrucciones: instrucciones,
+			linea:linea,
+			columna: columna
 		}
 	},
 
-	/**
-	 * Crea un objeto tipo Instrucción para la sentencia If-Else.
-	 * @param {*} expresionLogica 
-	 * @param {*} instruccionesIfVerdadero 
-	 * @param {*} instruccionesIfFalso 
-	 */
-	nuevoIfElse: function(expresionLogica, instruccionesIfVerdadero, instruccionesIfFalso) {
+	
+	nuevoIfElse: function(expresionLogica, instruccionesIfVerdadero, instruccionesIfFalso,linea,columna) {
 		return {
-			tipo: TIPO_INSTRUCCION.IF_ELSE,
+			tipo: "SENTENCIA DE CONTROL",
+			tipodato:TIPO_INSTRUCCION.IF_ELSE,
 			expresionLogica: expresionLogica,
 			instruccionesIfVerdadero: instruccionesIfVerdadero,
-			instruccionesIfFalso: instruccionesIfFalso
+			instruccionesIfFalso: instruccionesIfFalso,
+			linea:linea,
+			columna: columna
 		}
 	},
   
-	/**
-	 * Crea un objeto tipo Instrucción para la sentencia Switch.
-	 * @param {*} expresionNumerica 
-	 * @param {*} instrucciones 
-	 */
-	nuevoSwitch: function(expresionNumerica, casos) {
+	nuevoSwitch: function(expresionNumerica, casos,linea,columna) {
 		return {
-			tipo: TIPO_INSTRUCCION.SWITCH,
+			tipo: "SENTENCIA DE CONTROL",
+			tipodato:TIPO_INSTRUCCION.SWITCH,
 			expresionNumerica: expresionNumerica,
-			casos: casos
+			casos: casos,
+			linea:linea,
+			columna: columna
 		}
 	},
 
-	/**
-	 * Crea una lista de casos para la sentencia Switch.
-	 * @param {*} caso 
-	 */
+	
 	nuevoListaCasos: function (caso) {
 		var casos = []; 
 		casos.push(caso);
 		return casos;
 	},
 
-	/**
-	 * Crea un objeto tipo OPCION_SWITCH para una CASO de la sentencia switch.
-	 * @param {*} expresionNumerica 
-	 * @param {*} instrucciones 
-	 */
-	nuevoCaso: function(expresionNumerica, instrucciones) {
+	
+	nuevoCaso: function(expresionNumerica, instrucciones,linea,columna) {
 		return {
 			tipo: TIPO_OPCION_SWITCH.CASO,
 			expresionNumerica: expresionNumerica,
-			instrucciones: instrucciones
+			instrucciones: instrucciones,
+			linea:linea,
+			columna: columna
 		}
 	},
-	/**
-	 * Crea un objeto tipo OPCION_SWITCH para un CASO DEFECTO de la sentencia switch.
-	 * @param {*} instrucciones 
-	 */
-	nuevoCasoDef: function(instrucciones) {
+	
+	nuevoCasoDef: function(instrucciones,linea,columna) {
 		return {
 			tipo: TIPO_OPCION_SWITCH.DEFECTO,
-			instrucciones: instrucciones
+			instrucciones: instrucciones,
+			linea:linea,
+			columna: columna
 		}
 	},
     
-	/**
-	* Crea un objeto tipo Operador (+ , - , / , *) 
-	* @param {*} operador 
-	*/
+	
 	nuevoOperador: function(operador){
 		return operador 
+	},
+
+	parseError( yytext, yylloc, yy,tipo) {
+		// Agregamos el error a la lista de errores
+		errores.push({
+			tipo: tipo,
+			texto: yy,
+			linea: yylloc.first_line,
+			columna: yylloc.first_column,
+			token: yytext // Guardamos el valor del token que generó el error
+		});
 	}
 }
 // Exportamos nuestras constantes y nuestra API
 
-module.exports.TIPO_OPERACION = TIPO_OPERACION;
+module.exports.TIPO_EXPRESION = TIPO_EXPRESION;
 module.exports.TIPO_INSTRUCCION = TIPO_INSTRUCCION;
 module.exports.TIPO_VALOR = TIPO_VALOR;
 module.exports.instruccionesAPI = instruccionesAPI;
+module.exports.errores = errores;
 module.exports.TIPO_OPCION_SWITCH = TIPO_OPCION_SWITCH;

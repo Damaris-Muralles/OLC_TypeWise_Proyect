@@ -2,26 +2,18 @@
 
 string var1;
 boolean var2;
-int var3;
-double var4;
-char var5;
 
-/*
-//Asignacion simple
+void dat(int b, bOOLEan c){
+    string a;
+    
+}
+INT LIS(){
+     string B;
+     return b;
+}
+int var5= lis();
+boolean er = true;
+var1 = lis();
 var1="hola";
 
-var3=-4;
-var4=-5.0;
-
-USANDO LAS restas - para  comprobar:
- operaciones aritmeticas 
-
-
-string a1="hola\\\n como tas";
-
-int a3=1023;
-double a4=(5.5)/(2+1);
-char var5='a';*/
-
-
-boolean a2= !(1-2)<0;
+main dat(1,var2);
