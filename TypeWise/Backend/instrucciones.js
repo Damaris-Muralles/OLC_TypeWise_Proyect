@@ -169,6 +169,7 @@ const instruccionesAPI = {
 			columna: columna
 		}
 	},
+
 	nuevoOperacionBinaria: function(operandoIzq, operandoDer, tipo,linea,columna) {
 		console.log("inst_operaciones; ",operandoIzq,operandoDer)
 		return nuevaOperacion(operandoIzq, operandoDer, tipo,linea,columna);
@@ -203,8 +204,8 @@ const instruccionesAPI = {
 	
 	nuevoPRINT: function(expresionCadena,linea,columna) {
 		return {
-			tipo: "FUNCION",
-			tipodato: TIPO_INSTRUCCION.PRINT,
+			tipo: TIPO_INSTRUCCION.PRINT,
+			tipodato: "PRINT",
 			expresionCadena: expresionCadena,
 			linea:linea,
 			columna: columna

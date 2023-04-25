@@ -54,7 +54,7 @@ class TS {
             return null;
         }
     }
-    actualizar(id, valor) { 
+    actualizar(id, valor, linea, columna) { 
         const simbolo = this._simbolos.filter(simbolo => simbolo.id === id)[0];
         let tsrepetidos=[];
 
@@ -108,11 +108,11 @@ class TS {
                     console.log("cambio",simbolo)
                 }
             }else{
-                tsrepetidos.push({tipo:"Semantico",descripcion:'variable: ' + id + ' tiene tipo: '+simbolo.tipo +' y el valor a asignar es de tipo: '+valor.tipo,lineaerror:simbolo.linea,columnaerror:simbolo.columna});
+                tsrepetidos.push({tipo:"Semantico",descripcion:'variable: ' + id + ' tiene tipo: '+simbolo.tipo +' y el valor a asignar es de tipo: '+valor.tipo,lineaerror:linea,columnaerror:columna});
                 console.log( 'ERROR DE TIPOS -> variable: ' + id + ' tiene tipo: '+simbolo.tipo +' y el valor a asignar es de tipo: '+valor.tipo)
             }
         } else if (this.padre) {
-            this.padre.actualizar(id, valor);
+            this.padre.actualizar(id, valor, linea, columna);
         } else {
             // manejar el caso en que el símbolo no se encuentra en ningún ámbito
             tsrepetidos.push({tipo:"Semantico",descripcion:'variable: ' + id + ' no ha sido definida',lineaerror:simbolo.linea,columnaerror:simbolo.columna});
@@ -122,20 +122,22 @@ class TS {
     }
 
   
-    obtener(id) {
+    obtener(id, linea, columna) {
         let tsrepetidos=[];
         // Buscar la variable en la tabla de símbolos local
+        console.log(id)
         let variable = this._simbolos.filter(simbolo => simbolo.id === id)[0];
-        console.log("obteniendo dato ",variable, this.padre)
+        console.log("obteniendo dato ",variable)
         // Si no se encuentra la variable en la tabla de símbolos local
         if (!variable && this.padre) {
             // Buscar la variable en la tabla de símbolos padre
             console.log("obtener padre")
-            variable = this.padre.obtener(id);
+            variable = this.padre.obtener(id, linea, columna);
         }
         if(!variable&& this.padre==null){
             console.log("es en obtener")
-            tsrepetidos.push({tipo:"Semantico",descripcion:'variable: ' + id + ' no ha sido definida',lineaerror:variable.linea,columnaerror:variable.columna});
+           
+            tsrepetidos.push({tipo:"Semantico",descripcion:'variable: ' + id + ' no ha sido definida',lineaerror:linea,columnaerror:columna});
             console.log( 'ERROR: variable: ' + id + ' no ha sido definida')
             return tsrepetidos;
         }

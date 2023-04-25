@@ -43,6 +43,26 @@
     ],
     "instrucciones": [
       {
+        "tipo": "LLAMADA",
+        "identificador": "lis",
+        "argumentos": [],
+        "linea": 7,
+        "columna": 4
+      },
+      {
+        "tipo": "INSTR_PRINT",
+        "tipodato": "PRINT",
+        "expresionCadena": {
+          "tipo": "LLAMADA",
+          "identificador": "lis",
+          "argumentos": [],
+          "linea": 8,
+          "columna": 10
+        },
+        "linea": 8,
+        "columna": 4
+      },
+      {
         "tipo": "INSTR_DECLARACION",
         "identificador": "a",
         "tipo_dato": "STRING",
@@ -51,7 +71,7 @@
           "tipo_dato": "STRING"
         },
         "esGlobal": true,
-        "linea": 7,
+        "linea": 9,
         "columna": 4
       }
     ],
@@ -73,38 +93,35 @@
           "tipo_dato": "STRING"
         },
         "esGlobal": true,
-        "linea": 11,
-        "columna": 5
+        "linea": 13,
+        "columna": 4
+      },
+      {
+        "tipo": "INSTR_ASIGANCION",
+        "identificador": "b",
+        "expresionNumerica": {
+          "tipo": "VAL_STRING",
+          "valor": "hola",
+          "linea": 14,
+          "columna": 6
+        },
+        "linea": 14,
+        "columna": 4
       },
       {
         "tipo": "SENTENCIA DE TRANSFERENCIA",
         "tipodato": "RETURN",
         "expresionNumerica": {
-          "tipo": "VAL_IDENTIFICADOR",
-          "valor": "b",
-          "linea": 12,
-          "columna": 12
+          "tipo": "VAL_INT",
+          "valor": 1,
+          "linea": 15,
+          "columna": 11
         },
-        "linea": 12,
-        "columna": 5
+        "linea": 15,
+        "columna": 4
       }
     ],
-    "linea": 10,
-    "columna": 0
-  },
-  {
-    "tipo": "INSTR_DECLARACION_CON_ASIGNACION",
-    "identificador": "var5",
-    "tipo_dato": "INT",
-    "valor": {
-      "tipo": "LLAMADA",
-      "identificador": "lis",
-      "argumentos": [],
-      "linea": 14,
-      "columna": 10
-    },
-    "esGlobal": true,
-    "linea": 14,
+    "linea": 12,
     "columna": 0
   },
   {
@@ -114,36 +131,11 @@
     "valor": {
       "tipo": "VAL_BOOLEAN",
       "valor": "true",
-      "linea": 15,
+      "linea": 19,
       "columna": 13
     },
     "esGlobal": true,
-    "linea": 15,
-    "columna": 0
-  },
-  {
-    "tipo": "INSTR_ASIGANCION",
-    "identificador": "var1",
-    "expresionNumerica": {
-      "tipo": "LLAMADA",
-      "identificador": "lis",
-      "argumentos": [],
-      "linea": 16,
-      "columna": 7
-    },
-    "linea": 16,
-    "columna": 0
-  },
-  {
-    "tipo": "INSTR_ASIGANCION",
-    "identificador": "var1",
-    "expresionNumerica": {
-      "tipo": "VAL_STRING",
-      "valor": "hola",
-      "linea": 17,
-      "columna": 5
-    },
-    "linea": 17,
+    "linea": 19,
     "columna": 0
   },
   {
@@ -155,21 +147,21 @@
       "argumentos": [
         {
           "tipo": "VAL_INT",
-          "valor": 1,
-          "linea": 19,
+          "valor": 2,
+          "linea": 22,
           "columna": 9
         },
         {
           "tipo": "VAL_IDENTIFICADOR",
           "valor": "var2",
-          "linea": 19,
+          "linea": 22,
           "columna": 11
         }
       ],
-      "linea": 19,
+      "linea": 22,
       "columna": 5
     },
-    "linea": 19,
+    "linea": 22,
     "columna": 0
   }
 ]

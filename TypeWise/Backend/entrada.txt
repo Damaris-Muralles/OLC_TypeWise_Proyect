@@ -4,16 +4,19 @@ string var1;
 boolean var2;
 
 void dat(int b, bOOLEan c){
+    lis();
+    print(lis());
     string a;
     
 }
-INT LIS(){
-     string B;
-     return b;
+int lis(){
+    string b;
+    b="hola";
+    return 1;
 }
-int var5= lis();
-boolean er = true;
-var1 = lis();
-var1="hola";
 
-main dat(1,var2);
+
+boolean er = true;
+
+
+main dat(2,var2);

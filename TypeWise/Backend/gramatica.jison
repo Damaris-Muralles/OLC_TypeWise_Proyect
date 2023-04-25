@@ -291,7 +291,7 @@ instruccionmetodo
 	: declaracion  PTCOMA	              { $$ = $1; }
 	| asignacion   PTCOMA                { $$ = $1; }
 	| llamada_funcion 	PTCOMA           { $$ = $1; }
-
+	| sentenciaprint PTCOMA{ $$ = $1; }
 	| error  { 
 					ubicacion = {
 						first_line: @1.first_line,
@@ -309,7 +309,7 @@ instruccionfuncion
 	| asignacion   PTCOMA                { $$ = $1; }
 	| llamada_funcion 	PTCOMA           { $$ = $1; }
 	| retornos PTCOMA { $$ = $1; }
-
+	| sentenciaprint PTCOMA{ $$ = $1; }
 	| error  { 
 					ubicacion = {
 						first_line: @1.first_line,
@@ -375,7 +375,11 @@ tipos
 retornos
 	:T_RETURN expresionescompuestas  {$$ = instruccionesAPI.nuevoReturn($2,@1.first_line, @1.first_column);}
 ;
-//T_PRINT PARIZQ expresion_cadena PARDER PTCOMA	{ $$ = instruccionesAPI.nuevoPRINT($3); }
+
+sentenciaprint
+	:T_PRINT PARIZQ expresion PARDER 	{ $$ = instruccionesAPI.nuevoPRINT($3,@1.first_line, @1.first_column); }
+;
+//
 	//| T_WHILE PARIZQ expresion_logica PARDER LLAVIZQ instrucciones LLAVDER
 		//												{ $$ = instruccionesAPI.nuevoWHILE($3, $6); }
 	//| T_FOR PARIZQ IDENTIFICADOR IGUAL expresion_numerica PTCOMA expresion_logica PTCOMA IDENTIFICADOR MAS MAS PARDER LLAVIZQ instrucciones LLAVDER
@@ -395,6 +399,9 @@ retornos
 	
 
 /*
+sentenciacontrol
+	:
+;
 casos : casos caso_evaluar
     {
       $1.push($2);
