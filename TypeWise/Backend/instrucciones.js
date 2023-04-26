@@ -51,7 +51,8 @@ const TIPO_INSTRUCCION = {
 	ASIGNACION_SIMPLIFICADA: 'ASIGNACION_SIMPLIFICADA',
 	PRINCIPAL: 		'SENTENCIA_MAIN',
 	METODOS:        'METODO',
-	FUNCIONES:      'FUNCION'
+	FUNCIONES:      'FUNCION',
+	BREAK:      'INST_BREAK'
 }
 
 // Constantes para los tipos de OPCION_SWITCH validas en la gramática
@@ -125,6 +126,7 @@ const instruccionesAPI = {
 		}
 
 	},
+
 	nuevoAsignacion: function(identificador, expresionNumerica,linea,columna) {
 		
 		return {
@@ -145,6 +147,7 @@ const instruccionesAPI = {
 			columna: columna
 		}
 	},
+
 	nuevaFuncion: function(funcion,parametro,instruccion,tipo,tipodato,linea,columna) {
 		let tipofuncion= TIPO_INSTRUCCION.METODOS;
 		if(tipo=='FUNCION'){
@@ -160,6 +163,7 @@ const instruccionesAPI = {
 			columna: columna
 		}
 	},
+
 	nuevoLlamadaFuncion: function(identificador, argumentos,linea,columna) {
 		return {
 			tipo: TIPO_EXPRESION.LLAMADA,
@@ -175,33 +179,10 @@ const instruccionesAPI = {
 		return nuevaOperacion(operandoIzq, operandoDer, tipo,linea,columna);
 	},
  
-	
 	nuevoOperacionUnaria: function(operando, tipo,linea,columna) {
 		return nuevaOperacion(operando, undefined, tipo,linea,columna);
 	},
  
-	nuevoReturn: function(expresionNumerica, linea,columna) {
-		return {
-			tipo: "SENTENCIA DE TRANSFERENCIA",
-			tipodato:TIPO_EXPRESION.RETORNO,
-			expresionNumerica: expresionNumerica,
-			linea:linea,
-			columna: columna
-		}
-	},
-
-	nuevoAsignacionSimplificada: function(identificador, operador , expresionNumerica,linea, columna){
-		return{
-			tipo: TIPO_INSTRUCCION.ASIGNACION_SIMPLIFICADA,
-			operador : operador,
-			expresionNumerica: expresionNumerica,
-			identificador : identificador,
-			linea: linea,
-			columna: columna,
-
-		} 
-	},
-	
 	nuevoPRINT: function(expresionCadena,linea,columna) {
 		return {
 			tipo: TIPO_INSTRUCCION.PRINT,
@@ -212,34 +193,10 @@ const instruccionesAPI = {
 		};
 	},
 	
-
-	nuevoWHILE: function(expresionLogica, instrucciones,linea,columna) {
-		return {
-			tipo: "SENTENCIA CICLICA",
-			tipodato:TIPO_INSTRUCCION.WHILE,
-			expresionLogica: expresionLogica,
-			instrucciones: instrucciones
-		};
-	},
-
-	nuevoPara: function (variable, valorVariable, expresionLogica, aumento, instrucciones,linea,columna) {
-		return {
-			tipo: "SENTENCIA CICLICA",
-			tipodato:TIPO_INSTRUCCION.PARA,
-			expresionLogica: expresionLogica,
-			instrucciones: instrucciones,
-			aumento: aumento,
-			variable: variable,
-			valorVariable: valorVariable,
-			linea:linea,
-			columna: columna
-		}
-	},
-	
 	nuevoIf: function(expresionLogica, instrucciones,linea,columna) {
 		return {
-			tipo: "SENTENCIA DE CONTROL",
-			tipodato:TIPO_INSTRUCCION.IF,
+			tipo:  TIPO_INSTRUCCION.IF,
+			tipodato:"SENTENCIA DE CONTROL",
 			expresionLogica: expresionLogica,
 			instrucciones: instrucciones,
 			linea:linea,
@@ -247,11 +204,10 @@ const instruccionesAPI = {
 		}
 	},
 
-	
 	nuevoIfElse: function(expresionLogica, instruccionesIfVerdadero, instruccionesIfFalso,linea,columna) {
 		return {
-			tipo: "SENTENCIA DE CONTROL",
-			tipodato:TIPO_INSTRUCCION.IF_ELSE,
+			tipo: TIPO_INSTRUCCION.IF_ELSE,
+			tipodato:"SENTENCIA DE CONTROL",
 			expresionLogica: expresionLogica,
 			instruccionesIfVerdadero: instruccionesIfVerdadero,
 			instruccionesIfFalso: instruccionesIfFalso,
@@ -259,18 +215,17 @@ const instruccionesAPI = {
 			columna: columna
 		}
 	},
-  
+	
 	nuevoSwitch: function(expresionNumerica, casos,linea,columna) {
 		return {
-			tipo: "SENTENCIA DE CONTROL",
-			tipodato:TIPO_INSTRUCCION.SWITCH,
+			tipo:  TIPO_INSTRUCCION.SWITCH,
+			tipodato:"SENTENCIA DE CONTROL",
 			expresionNumerica: expresionNumerica,
 			casos: casos,
 			linea:linea,
 			columna: columna
 		}
 	},
-
 	
 	nuevoListaCasos: function (caso) {
 		var casos = []; 
@@ -278,7 +233,6 @@ const instruccionesAPI = {
 		return casos;
 	},
 
-	
 	nuevoCaso: function(expresionNumerica, instrucciones,linea,columna) {
 		return {
 			tipo: TIPO_OPCION_SWITCH.CASO,
@@ -297,8 +251,67 @@ const instruccionesAPI = {
 			columna: columna
 		}
 	},
-    
+
+    nuevoBreak() {
+		return {
+			tipo: TIPO_INSTRUCCION.BREAK
+		};
+	},
 	
+	nuevoReturn: function(expresionNumerica, linea,columna) {
+		return {
+			tipo: "SENTENCIA DE TRANSFERENCIA",
+			tipodato:TIPO_EXPRESION.RETORNO,
+			expresionNumerica: expresionNumerica,
+			linea:linea,
+			columna: columna
+		}
+	},
+
+
+
+
+
+
+
+	nuevoAsignacionSimplificada: function(identificador, operador , expresionNumerica,linea, columna){
+		return{
+			tipo: TIPO_INSTRUCCION.ASIGNACION_SIMPLIFICADA,
+			operador : operador,
+			expresionNumerica: expresionNumerica,
+			identificador : identificador,
+			linea: linea,
+			columna: columna,
+
+		} 
+	},
+	
+
+
+
+	nuevoWHILE: function(expresionLogica, instrucciones,linea,columna) {
+		return {
+			tipo: TIPO_INSTRUCCION.WHILE,
+			tipodato:"SENTENCIA CICLICA",
+			expresionLogica: expresionLogica,
+			instrucciones: instrucciones
+		};
+	},
+
+	nuevoPara: function (variable, valorVariable, expresionLogica, aumento, instrucciones,linea,columna) {
+		return {
+			tipo: TIPO_INSTRUCCION.PARA,
+			tipodato:"SENTENCIA CICLICA",
+			expresionLogica: expresionLogica,
+			instrucciones: instrucciones,
+			aumento: aumento,
+			variable: variable,
+			valorVariable: valorVariable,
+			linea:linea,
+			columna: columna
+		}
+	},
+
 	nuevoOperador: function(operador){
 		return operador 
 	},

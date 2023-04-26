@@ -1,18 +1,6 @@
 [
   {
     "tipo": "INSTR_DECLARACION",
-    "identificador": "var1",
-    "tipo_dato": "STRING",
-    "valor": {
-      "valor": "",
-      "tipo_dato": "STRING"
-    },
-    "esGlobal": true,
-    "linea": 3,
-    "columna": 0
-  },
-  {
-    "tipo": "INSTR_DECLARACION",
     "identificador": "var2",
     "tipo_dato": "BOOLEAN",
     "valor": {
@@ -20,7 +8,7 @@
       "tipo_dato": "BOOLEAN"
     },
     "esGlobal": true,
-    "linea": 4,
+    "linea": 3,
     "columna": 0
   },
   {
@@ -31,51 +19,162 @@
       {
         "tipo": "INT",
         "identificador": "b",
-        "linea": 6,
+        "linea": 5,
         "columna": 13
       },
       {
         "tipo": "BOOLEAN",
         "identificador": "c",
-        "linea": 6,
+        "linea": 5,
         "columna": 16
       }
     ],
     "instrucciones": [
       {
-        "tipo": "LLAMADA",
-        "identificador": "lis",
-        "argumentos": [],
+        "tipo": "INSTR_PRINT",
+        "tipodato": "PRINT",
+        "expresionCadena": {
+          "tipo": "VAL_IDENTIFICADOR",
+          "valor": "b",
+          "linea": 7,
+          "columna": 10
+        },
         "linea": 7,
         "columna": 4
       },
       {
-        "tipo": "INSTR_PRINT",
-        "tipodato": "PRINT",
-        "expresionCadena": {
-          "tipo": "LLAMADA",
-          "identificador": "lis",
-          "argumentos": [],
+        "tipo": "INSTR_DECLARACION_CON_ASIGNACION",
+        "identificador": "edad",
+        "tipo_dato": "INT",
+        "valor": {
+          "tipo": "VAL_INT",
+          "valor": 285,
           "linea": 8,
-          "columna": 10
+          "columna": 13
         },
+        "esGlobal": true,
         "linea": 8,
         "columna": 4
       },
       {
-        "tipo": "INSTR_DECLARACION",
-        "identificador": "a",
-        "tipo_dato": "STRING",
-        "valor": {
-          "valor": "",
-          "tipo_dato": "STRING"
+        "tipo": "SWITCH",
+        "tipodato": "SENTENCIA DE CONTROL",
+        "expresionNumerica": {
+          "tipo": "VAL_IDENTIFICADOR",
+          "valor": "edad",
+          "linea": 18,
+          "columna": 12
         },
-        "esGlobal": true,
-        "linea": 9,
+        "casos": [
+          {
+            "tipo": "CASO",
+            "expresionNumerica": {
+              "tipo": "VAL_INT",
+              "valor": 10,
+              "linea": 19,
+              "columna": 9
+            },
+            "instrucciones": [
+              {
+                "tipo": "INSTR_PRINT",
+                "tipodato": "PRINT",
+                "expresionCadena": {
+                  "tipo": "VAL_STRING",
+                  "valor": "Tengo 10 anios.",
+                  "linea": 20,
+                  "columna": 14
+                },
+                "linea": 20,
+                "columna": 8
+              },
+              {
+                "tipo": "INST_BREAK"
+              }
+            ],
+            "linea": 19,
+            "columna": 4
+          },
+          {
+            "tipo": "CASO",
+            "expresionNumerica": {
+              "tipo": "VAL_INT",
+              "valor": 18,
+              "linea": 22,
+              "columna": 9
+            },
+            "instrucciones": [
+              {
+                "tipo": "INSTR_PRINT",
+                "tipodato": "PRINT",
+                "expresionCadena": {
+                  "tipo": "VAL_STRING",
+                  "valor": "Tengo 18 anios.",
+                  "linea": 23,
+                  "columna": 14
+                },
+                "linea": 23,
+                "columna": 8
+              }
+            ],
+            "linea": 22,
+            "columna": 4
+          },
+          {
+            "tipo": "CASO",
+            "expresionNumerica": {
+              "tipo": "VAL_INT",
+              "valor": 25,
+              "linea": 24,
+              "columna": 9
+            },
+            "instrucciones": [
+              {
+                "tipo": "INSTR_PRINT",
+                "tipodato": "PRINT",
+                "expresionCadena": {
+                  "tipo": "VAL_STRING",
+                  "valor": "Tengo 25 anios.",
+                  "linea": 25,
+                  "columna": 14
+                },
+                "linea": 25,
+                "columna": 8
+              },
+              {
+                "tipo": "INST_BREAK"
+              }
+            ],
+            "linea": 24,
+            "columna": 4
+          },
+          {
+            "tipo": "DEFECTO",
+            "instrucciones": [
+              {
+                "tipo": "INSTR_PRINT",
+                "tipodato": "PRINT",
+                "expresionCadena": {
+                  "tipo": "VAL_STRING",
+                  "valor": "No se que edad tengo. ",
+                  "linea": 29,
+                  "columna": 14
+                },
+                "linea": 29,
+                "columna": 8
+              },
+              {
+                "tipo": "INST_BREAK"
+              }
+            ],
+            "linea": 28,
+            "columna": 4
+          }
+        ],
+        "linea": 18,
         "columna": 4
       }
     ],
-    "linea": 6,
+    "linea": 5,
     "columna": 5
   },
   {
@@ -93,7 +192,7 @@
           "tipo_dato": "STRING"
         },
         "esGlobal": true,
-        "linea": 13,
+        "linea": 34,
         "columna": 4
       },
       {
@@ -102,10 +201,10 @@
         "expresionNumerica": {
           "tipo": "VAL_STRING",
           "valor": "hola",
-          "linea": 14,
+          "linea": 35,
           "columna": 6
         },
-        "linea": 14,
+        "linea": 35,
         "columna": 4
       },
       {
@@ -113,29 +212,15 @@
         "tipodato": "RETURN",
         "expresionNumerica": {
           "tipo": "VAL_INT",
-          "valor": 1,
-          "linea": 15,
+          "valor": 2,
+          "linea": 36,
           "columna": 11
         },
-        "linea": 15,
+        "linea": 36,
         "columna": 4
       }
     ],
-    "linea": 12,
-    "columna": 0
-  },
-  {
-    "tipo": "INSTR_DECLARACION_CON_ASIGNACION",
-    "identificador": "er",
-    "tipo_dato": "BOOLEAN",
-    "valor": {
-      "tipo": "VAL_BOOLEAN",
-      "valor": "true",
-      "linea": 19,
-      "columna": 13
-    },
-    "esGlobal": true,
-    "linea": 19,
+    "linea": 33,
     "columna": 0
   },
   {
@@ -148,20 +233,20 @@
         {
           "tipo": "VAL_INT",
           "valor": 2,
-          "linea": 22,
+          "linea": 39,
           "columna": 9
         },
         {
           "tipo": "VAL_IDENTIFICADOR",
           "valor": "var2",
-          "linea": 22,
+          "linea": 39,
           "columna": 11
         }
       ],
-      "linea": 22,
+      "linea": 39,
       "columna": 5
     },
-    "linea": 22,
+    "linea": 39,
     "columna": 0
   }
 ]

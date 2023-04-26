@@ -1,22 +1,39 @@
 //declaracion
 
-string var1;
 boolean var2;
 
 void dat(int b, bOOLEan c){
-    lis();
-    print(lis());
-    string a;
-    
+   
+    print(b);
+    int edad=285;
+    /*if ( lis()==2){
+        print("Es uno");
+    }else if (b>2){
+        print("segunda condicion menorr-----");
+       
+    }else{
+        print("------ no es ninguno");
+    }*/
+
+    switch( edad ) {
+    Case 10:
+        Print("Tengo 10 anios.");
+        Break;
+    Case 18:
+        Print("Tengo 18 anios.");
+    Case 25:
+        Print("Tengo 25 anios.");
+        
+        Break;
+    Default:
+        Print("No se que edad tengo. ");
+        Break;
+    }
 }
 int lis(){
     string b;
     b="hola";
-    return 1;
+    return 2;
 }
-
-
-boolean er = true;
-
 
 main dat(2,var2);

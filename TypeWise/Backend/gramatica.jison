@@ -199,7 +199,7 @@ instruccion
 						first_column: @1.first_column
 					};
 					
-					$$ = instruccionesAPI.parseError(yytext, ubicacion,"Instruccion No valido","Sintactico");
+					$$ = instruccionesAPI.parseError(yytext, ubicacion,"No se eseraba  ","Sintactico");
 					console.log('Este es un error sintáctico: ' + yytext + ', en la linea: ' + @0.first_line + ', en la columna: ' + @0.first_column);
 					// Descartamos el token que generó el error y continuamos el análisis después del token PTCOMA
 					 }
@@ -292,12 +292,15 @@ instruccionmetodo
 	| asignacion   PTCOMA                { $$ = $1; }
 	| llamada_funcion 	PTCOMA           { $$ = $1; }
 	| sentenciaprint PTCOMA{ $$ = $1; }
+	| sentenciacontrolIF { $$ = $1; }
+	| sentenciacontrolswitch{ $$ = $1; }
+	| sentenciabreak{ $$ = $1; }
 	| error  { 
 					ubicacion = {
 						first_line: @1.first_line,
 						first_column: @1.first_column
 					};
-					$$ = instruccionesAPI.parseError(@1.yytext, ubicacion, "Instruccion No valido","Sintactico");
+					$$ = instruccionesAPI.parseError(@1.yytext, ubicacion, "No se eseraba  ","Sintactico");
 					console.log('Este es un error sintáctico: ' +  yytext + ', en la linea: ' + @1.first_line + ', en la columna: ' + @1.first_column);
 					// Descartamos el token que generó el error y continuamos el análisis después del token PTCOMA
 
@@ -308,20 +311,22 @@ instruccionfuncion
 	: declaracion  PTCOMA	              { $$ = $1; }
 	| asignacion   PTCOMA                { $$ = $1; }
 	| llamada_funcion 	PTCOMA           { $$ = $1; }
-	| retornos PTCOMA { $$ = $1; }
 	| sentenciaprint PTCOMA{ $$ = $1; }
+	| sentenciacontrolIF { $$ = $1; }
+	| sentenciacontrolswitch{ $$ = $1; }
+	| sentenciabreak{ $$ = $1; }
+	| retornos  { $$ = $1; }
 	| error  { 
 					ubicacion = {
 						first_line: @1.first_line,
 						first_column: @1.first_column
 					};
-					$$ = instruccionesAPI.parseError(@1.yytext, ubicacion, "Instruccion No valido","Sintactico");
+					$$ = instruccionesAPI.parseError(yytext, ubicacion, "No se eseraba  "+yytext,"Sintactico");
 					console.log('Este es un error sintáctico: ' +  yytext + ', en la linea: ' + @1.first_line + ', en la columna: ' + @1.first_column);
 					// Descartamos el token que generó el error y continuamos el análisis después del token PTCOMA
 
 					}
 ;
-
 expresion
 	:  CADENA											{ $$ = instruccionesAPI.nuevoValor($1, TIPO_VALOR.CADENA,@1.first_line, @1.first_column); }
 	| ENTERO											{ $$ = instruccionesAPI.nuevoValor(Number($1), TIPO_VALOR.INT,@1.first_line, @1.first_column); }
@@ -365,20 +370,52 @@ expresionescompuestas
 	:expresion_logica{ $$ = $1; }
 	| expresion{ $$ = $1; }
 ;
-
 tipos
 	: T_INT IDENTIFICADOR { $$ = {tipo: TIPO_DATO.INT, identificador: $2, linea:@2.first_line, columna: @2.first_column}; }
     | T_DOUBLE IDENTIFICADOR { $$ = {tipo: TIPO_DATO.DOUBLE, identificador: $2, linea:@1.first_line, columna: @1.first_column}; }
     | T_CHAR IDENTIFICADOR { $$ = {tipo: TIPO_DATO.CHAR, identificador: $2, linea:@1.first_line, columna: @1.first_column}; }
     | T_STRING IDENTIFICADOR { $$ = {tipo: TIPO_DATO.STRING, identificador: $2, linea:@1.first_line, columna: @1.first_column}; }
 ;
-retornos
-	:T_RETURN expresionescompuestas  {$$ = instruccionesAPI.nuevoReturn($2,@1.first_line, @1.first_column);}
-;
-
 sentenciaprint
 	:T_PRINT PARIZQ expresion PARDER 	{ $$ = instruccionesAPI.nuevoPRINT($3,@1.first_line, @1.first_column); }
 ;
+sentenciacontrolIF
+	: T_IF PARIZQ expresion_logica PARDER LLAVIZQ instruccionesfuncion LLAVDER
+		{ $$ = instruccionesAPI.nuevoIf($3, $6,@1.first_line, @1.first_column); }
+	| T_IF PARIZQ expresion_logica PARDER LLAVIZQ instruccionesfuncion LLAVDER T_ELSE LLAVIZQ instruccionesfuncion LLAVDER
+		{ $$ = instruccionesAPI.nuevoIfElse($3, $6, $10,@1.first_line, @1.first_column); }
+	| T_IF PARIZQ expresion_logica PARDER LLAVIZQ instruccionesfuncion LLAVDER T_ELSE sentenciacontrolIF
+		{ $$ = instruccionesAPI.nuevoIfElse($3, $6, $9,@1.first_line, @1.first_column); }
+;
+sentenciacontrolswitch
+	:T_SWITCH PARIZQ expresion PARDER LLAVIZQ casos LLAVDER
+		{ $$ = instruccionesAPI.nuevoSwitch($3,$6,@1.first_line, @1.first_column);}
+;
+
+casos 
+	: casos caso_evaluar
+    	{$1.push($2);$$ = $1; }
+    | caso_evaluar
+  		{ $$ = instruccionesAPI.nuevoListaCasos($1);}
+;
+
+caso_evaluar 
+	: T_CASE expresion DOSPTS instruccionesfuncion
+    	{ $$ = instruccionesAPI.nuevoCaso($2,$4,@1.first_line, @1.first_column); }
+  	| T_DEFAULT DOSPTS instruccionesfuncion
+    	{ $$ = instruccionesAPI.nuevoCasoDef($3,@1.first_line, @1.first_column); }
+;
+
+retornos
+	:T_RETURN expresionescompuestas PTCOMA 
+		 {$$ = instruccionesAPI.nuevoReturn($2,@1.first_line, @1.first_column);}
+;
+sentenciabreak
+    : T_BREAK PTCOMA
+        { $$ = instruccionesAPI.nuevoBreak(); }
+;
+
+
 //
 	//| T_WHILE PARIZQ expresion_logica PARDER LLAVIZQ instrucciones LLAVDER
 		//												{ $$ = instruccionesAPI.nuevoWHILE($3, $6); }
@@ -387,35 +424,17 @@ sentenciaprint
 	
 
 
-	//| T_IF PARIZQ expresion_logica PARDER LLAVIZQ instrucciones LLAVDER
-				//										{ $$ = instruccionesAPI.nuevoIf($3, $6); }
-	//| T_IF PARIZQ expresion_logica PARDER LLAVIZQ instrucciones LLAVDER T_ELSE LLAVIZQ instrucciones LLAVDER
-				//										{ $$ = instruccionesAPI.nuevoIf($3, $6, $10); }
-
-	//| T_SWITCH PARIZQ expresion_numerica PARDER LLAVIZQ casos LLAVDER
-		//{ $$ = instruccionesAPI.nuevoSwitch($3,$6);}
-	//| IDENTIFICADOR operadores expresion_numerica PTCOMA	
-	            //                                        { $$ = instruccionesAPI.nuevoAsignacionSimplificada($1, $2, $3); }
+	//| 
+	
 	
 
-/*
-sentenciacontrol
-	:
-;
-casos : casos caso_evaluar
-    {
-      $1.push($2);
-	  $$ = $1;
-    }
-  | caso_evaluar
-  	{ $$ = instruccionesAPI.nuevoListaCasos($1);}
-;
 
-caso_evaluar : T_CASE expresion_numerica DOSPTS instrucciones
-    { $$ = instruccionesAPI.nuevoCaso($2,$4); }
-  | T_DEFAULT DOSPTS instrucciones
-    { $$ = instruccionesAPI.nuevoCasoDef($3); }
-;*/
+
+
+
+
+
+
 /*
 operadores
     : O_MAS      { $$ = instruccionesAPI.nuevoOperador(TIPO_EXPRESION.SUMA); }
