@@ -237,7 +237,19 @@ function procesarBloque(instrucciones, tablaDeSimbolos,fun) {
             } else if (instruccion.tipo === TIPO_INSTRUCCION.SWITCH) {
                 // Procesando Instrucción Switch  
                 procesarSwitch(instruccion, tablaDeSimbolos,fun);
-            } else if (instruccion.tipo === TIPO_INSTRUCCION.BREAK) {
+            }  else if (instruccion.tipo === TIPO_INSTRUCCION.WHILE) {
+                // Procesando Instrucción Switch  
+                procesarWHILE(instruccion, tablaDeSimbolos,fun);
+            }  else if (instruccion.tipo === TIPO_INSTRUCCION.PARA) {
+                // Procesando Instrucción Switch  
+                procesarPara(instruccion, tablaDeSimbolos,fun);
+            } else if (instruccion.tipo === TIPO_INSTRUCCION.DOWHILE) {
+                // Procesando Instrucción Switch  
+                procesarDoWhile(instruccion, tablaDeSimbolos,fun);
+            } else if (instruccion.tipo === TIPO_INSTRUCCION.AUMENTOS) {
+                // Procesando Instrucción Switch  
+                procesarAumentos(instruccion,tablaDeSimbolos)
+            }else if (instruccion.tipo === TIPO_INSTRUCCION.BREAK) {
                 resultado.encontroBreak = true;
                 return; // Salir del bucle forEach
             } else if ((instruccion.tipodato === TIPO_EXPRESION.RETORNO)&&(fun==1)) {
@@ -341,7 +353,7 @@ function procesarAsignacion(instruccion, tablaDeSimbolos) {
                     console.log("===========decasif: ",instruccion,instruccion.expresionNumerica)
                     const valor = procesarFuncion(instruccion.expresionNumerica, tablaDeSimbolos); 
                     console.log("valoytrer ",valor, instruccion)
-                    let erroractualizacion=tablaDeSimbolos.actualizar(instruccion.identificador, valor,instruccion.linea,instruccion.columna);
+                    let erroractualizacion=tablaDeSimbolos.actualizar(instruccion.identificador, tablaDeSimbolos.obtener(instruccion.variable).valor + 1,instruccion.linea,instruccion.columna);
                     if (erroractualizacion.length!=0){
                         erroreslist.push(...erroractualizacion);
                     }
@@ -514,6 +526,7 @@ function procesarExpresionNumerica(expresion, tablaDeSimbolos) {
             if (expresion.tipo === TIPO_EXPRESION.MODULO) {
                 const res= valorIzq % valorDer;
                 return { valor: parseFloat(res.toFixed(1)), tipo: TIPO_DATO.DOUBLE  };
+                
             }
             if (expresion.tipo === TIPO_EXPRESION.DIVISION) {
             
@@ -563,13 +576,49 @@ function procesarExpresionNumerica(expresion, tablaDeSimbolos) {
                 return procesarFuncion(expresion,tablaDeSimbolos);
             }
             return {valor: sym.valor, tipo: sym.tipo};
-        } else {
+        
+        } else  if (expresion.tipo === TIPO_INSTRUCCION.AUMENTOS) {
+            let simbolos= tablaDeSimbolos.obtener(expresion.identificador)
+            if ((Array.isArray(simbolos) && simbolos[0].tipo != "Semantico") || (!Array.isArray(simbolos) && simbolos.tipo != "Semantico")){
+                if (simbolos.tipo==TIPO_DATO.DOUBLE|| simbolos.tipo==TIPO_DATO.INT){
+                    let erroractualizacion;
+                    if ( expresion.tipodato=="INCREMENTO"){
+
+                            erroractualizacion=tablaDeSimbolos.actualizar(simbolos.id, {valor:simbolos.valor+1,tipo:simbolos.tipo},expresion.linea,expresion.columna);
+                    }else{
+                            erroractualizacion=tablaDeSimbolos.actualizar(simbolos.id,{valor:simbolos.valor-1,tipo:simbolos.tipo},expresion.linea,expresion.columna);
+                    }
+                        
+                    if (erroractualizacion.length!=0){
+                        erroreslist.push(...erroractualizacion);
+                    }
+                }else{
+                    erroreslist.push({tipo:"Semantico",descripcion:'No puede realizarse incremento/decremento en una variable de tipo '+simbolos.ti,lineaerror:instruccion.linea,columnaerror:instruccion.columna})
+                }
+                return {valor: simbolos.valor, tipo: simbolos.tipo};
+            }else{
+                erroreslist.push(...simbolos)
+            }
+            return{valor:undefined, tipo:undefined}
+        }  else  if (expresion.tipo === TIPO_EXPRESION.TERNARIO) {
+            
+            return procesarOperacionTernario(expresion, tablaDeSimbolos);
+        }else {
             console.log( 'ERROR: expresión numérica no válida: ' + expresion);
             erroreslist.push({tipo:"Semantico",descripcion:'Expresion numerica no valida',lineaerror:expresion.linea,columnaerror:expresion.columna});
         }
     }
 }
-
+ 
+function procesarOperacionTernario(operacionTernaria, tablaDeSimbolos) {
+    const resultadoCondicion = procesarExpresionLogica(operacionTernaria.expresionLogica, tablaDeSimbolos);
+    if (resultadoCondicion) {
+        return procesarExpresionCadena(operacionTernaria.instruccionesIfVerdadero, tablaDeSimbolos);
+    } else {
+        return procesarExpresionCadena(operacionTernaria.instruccionesIfFalso, tablaDeSimbolos);
+    }
+}
+    
 function procesarExpresionCadena(expresion, tablaDeSimbolos) {
     if (erroreslist.length==0){
         if (expresion.tipo === TIPO_EXPRESION.CONCATENACION) {
@@ -604,7 +653,7 @@ function procesarExpresionCadena(expresion, tablaDeSimbolos) {
             // y retornamos su valor en cadena.
             console.log("eewer_ ",expresion)
         
-            if ([TIPO_EXPRESION.LLAMADA,TIPO_VALOR.BOOLEAN,TIPO_VALOR.INT,TIPO_VALOR.DOUBLE,TIPO_VALOR.CARACTER,TIPO_VALOR.CADENA,TIPO_VALOR.IDENTIFICADOR,TIPO_EXPRESION.SUMA,TIPO_EXPRESION.RESTA, TIPO_EXPRESION.MULTIPLICACION,TIPO_EXPRESION.DIVISION,TIPO_EXPRESION.POTENCIA,TIPO_EXPRESION.MODULO,TIPO_EXPRESION.NEGATIVO].includes(expresion.tipo)){
+            if ([TIPO_INSTRUCCION.AUMENTOS,TIPO_EXPRESION.TERNARIO,TIPO_EXPRESION.LLAMADA,TIPO_VALOR.BOOLEAN,TIPO_VALOR.INT,TIPO_VALOR.DOUBLE,TIPO_VALOR.CARACTER,TIPO_VALOR.CADENA,TIPO_VALOR.IDENTIFICADOR,TIPO_EXPRESION.SUMA,TIPO_EXPRESION.RESTA, TIPO_EXPRESION.MULTIPLICACION,TIPO_EXPRESION.DIVISION,TIPO_EXPRESION.POTENCIA,TIPO_EXPRESION.MODULO,TIPO_EXPRESION.NEGATIVO].includes(expresion.tipo)){
                 return procesarExpresionNumerica(expresion, tablaDeSimbolos);
             }else{
                 console.log("lsodf")
@@ -834,22 +883,28 @@ function procesarRetorno(instruccion, tablaDeSimbolos){
     
 }
 function procesarPRINT(instruccion, tablaDeSimbolos) {
+    if (erroreslist.length==0){
     const cadena = procesarExpresionCadena(instruccion.expresionCadena, tablaDeSimbolos).valor;
     console.log('----> ' + cadena);
+    }
 }
 
 
 function procesarIf(instruccion, tablaDeSimbolos,fun) {
+    if (erroreslist.length==0){
     const valorCondicion = procesarExpresionLogica(instruccion.expresionLogica, tablaDeSimbolos,0);
 
     if (valorCondicion) {
         const tsIf = new TS(tablaDeSimbolos.simbolos);
         const resultado =procesarBloque(instruccion.instrucciones, tsIf,fun);
+
     }
+}
 }
 
 
 function procesarIfElse(instruccion, tablaDeSimbolos,fun) {
+    if (erroreslist.length==0){
     const valorCondicion = procesarExpresionLogica(instruccion.expresionLogica, tablaDeSimbolos,0);
 
     if (valorCondicion) {
@@ -868,132 +923,122 @@ function procesarIfElse(instruccion, tablaDeSimbolos,fun) {
         
     }
 }
+}
 
 function procesarSwitch(instruccion, tablaDeSimbolos,fun) {
-    const valorExpresion = procesarExpresionCadena(instruccion.expresionNumerica, tablaDeSimbolos);
-    const tsSwitch = new TS(tablaDeSimbolos.simbolos);
-   
-    let salir = false;
+    if (erroreslist.length==0){
+        const valorExpresion = procesarExpresionCadena(instruccion.expresionNumerica, tablaDeSimbolos);
+        const tsSwitch = new TS(tablaDeSimbolos.simbolos);
+    
+        let salir = false;
 
-    instruccion.casos.forEach(caso => {
-        if (!salir) {
-            if (caso.tipo === TIPO_OPCION_SWITCH.CASO) {
-                console.log("entro1")
-                const valorExpCase = procesarExpresionCadena(caso.expresionNumerica, tsSwitch);
-                console.log("entro3",valorExpCase, valorExpresion)
-                if (valorExpCase.valor === valorExpresion.valor ) {
-                    console.log("entro")
-                    if (!salir) {
-                        const resultado = procesarBloque(caso.instrucciones, tsSwitch,fun);
-                        if (resultado.encontroBreak) {
-                            salir = true;
+        instruccion.casos.forEach(caso => {
+            if (!salir) {
+                if (caso.tipo === TIPO_OPCION_SWITCH.CASO) {
+                    console.log("entro1")
+                    const valorExpCase = procesarExpresionCadena(caso.expresionNumerica, tsSwitch);
+                    console.log("entro3",valorExpCase, valorExpresion)
+                    if (valorExpCase.valor === valorExpresion.valor ) {
+                        console.log("entro")
+                        if (!salir) {
+                            const resultado = procesarBloque(caso.instrucciones, tsSwitch,fun);
+                            if (resultado.encontroBreak) {
+                                salir = true;
+                            }
                         }
-                    }
-            
-                }
-            } else if (caso.tipo === TIPO_OPCION_SWITCH.DEFECTO) {
                 
-                    if (!salir) {
-                        const resultado = procesarBloque(caso.instrucciones, tsSwitch,fun);
-                        if (resultado.encontroBreak) {
-                            salir = true;
-                        }
                     }
-                salir = true; // Salir automáticamente después de ejecutar el default
+                } else if (caso.tipo === TIPO_OPCION_SWITCH.DEFECTO) {
+                    
+                        if (!salir) {
+                            const resultado = procesarBloque(caso.instrucciones, tsSwitch,fun);
+                            if (resultado.encontroBreak) {
+                                salir = true;
+                            }
+                        }
+                    salir = true; // Salir automáticamente después de ejecutar el default
+                }
             }
-        }
-    });
+        });
+    }
 }
   
+function procesarAumentos(instruccion,tablaDeSimbolos){
+    let simbolos= tablaDeSimbolos.obtener(instruccion.identificador)
+       console.log("estamos en aumengtos")         
+    if ((Array.isArray(simbolos) && simbolos[0].tipo != "Semantico") || (!Array.isArray(simbolos) && simbolos.tipo != "Semantico")){
+        if (simbolos.tipo==TIPO_DATO.DOUBLE|| simbolos.tipo==TIPO_DATO.INT){
+            let erroractualizacion;
+            if ( instruccion.tipodato=="INCREMENTO"){
+                    erroractualizacion=tablaDeSimbolos.actualizar(simbolos.id, {valor:simbolos.valor+1,tipo:simbolos.tipo},instruccion.linea,instruccion.columna);
+            }else{
+                    erroractualizacion=tablaDeSimbolos.actualizar(simbolos.id, {valor:simbolos.valor-1,tipo:simbolos.tipo},instruccion.linea,instruccion.columna);
+            }
+                
+            if (erroractualizacion.length!=0){
+                erroreslist.push(...erroractualizacion);
+            }
+        }else{
+            erroreslist.push({tipo:"Semantico",descripcion:'No puede realizarse incremento/decremento en una variable de tipo '+simbolos,lineaerror:instruccion.linea,columnaerror:instruccion.columna})
+        }
+    }else{
+        erroreslist.push(...simbolos)
+    }
+                   
+}
+
+function procesarPara(instruccion, tablaDeSimbolos,fun) {
+    if (instruccion.variable.tipo!=TIPO_INSTRUCCION.ASIGNACION){
+        procesarDecAsig(instruccion.variable, tablaDeSimbolos);
+    }else{
+        procesarAsignacion(instruccion.variable, tablaDeSimbolos)
+    }
+    
+    if (erroreslist.length==0){
+        console.log("error en forn")
+        for (var i = tablaDeSimbolos.obtener(instruccion.variable.identificador).valor; procesarExpresionLogica(instruccion.expresionLogica, tablaDeSimbolos,0);
+        (instruccion.aumento.tipo == TIPO_INSTRUCCION.ASIGNACION) ? procesarAsignacion(instruccion.aumento,tablaDeSimbolos) : procesarAumentos(instruccion.aumento,tablaDeSimbolos)) {
+            if (erroreslist.length==0){
+                const tsPara = new TS([], tablaDeSimbolos);
+                const resultado =procesarBloque(instruccion.instrucciones, tsPara,fun);
+            }else{
+                break;
+            }
+            
+            
+        } 
+        
+    }
+}
 
 
+function procesarDoWhile(instruccion, tablaDeSimbolos,fun) {
+    if (erroreslist.length==0){
+        const tsDoWhile = new TS([], tablaDeSimbolos);
+        do {
+            if (erroreslist.length==0){
+                const resultado =procesarBloque(instruccion.instrucciones, tsDoWhile,fun);
+            }else{
+                break;
+            }
+        } while (procesarExpresionLogica(instruccion.expresionLogica, tsDoWhile,0));
+    }
+}
 
 
+function procesarWHILE(instruccion, tablaDeSimbolos,fun) {
+    if (erroreslist.length==0){
 
-
-
-
-
-
-
-
-
-
-/*
-function procesarSwitch(instruccion, tablaDeSimbolos) {
-    var evaluar = true;
-    const valorExpresion = procesarExpresionCadena(instruccion.expresionNumerica, tablaDeSimbolos);
-    const tsSwitch = new TS(tablaDeSimbolos.simbolos);
-
-    instruccion.casos.forEach(caso => {
-        if (caso.tipo == TIPO_OPCION_SWITCH.CASO){
-            const valorExpCase= procesarExpresionCadena(caso.expresionNumerica, tsSwitch);
-            if (valorExpCase == valorExpresion){
-                procesarBloque(caso.instrucciones, tsSwitch);
-                evaluar = false;
+        const tsWhile = new TS([], tablaDeSimbolos);
+        let condicion = procesarExpresionLogica(instruccion.expresionLogica, tsWhile,0);
+        while (condicion) {
+            if (erroreslist.length==0){
+                const resultado =procesarBloque(instruccion.instrucciones, tsWhile,fun);
+                condicion = procesarExpresionLogica(instruccion.expresionLogica, tsWhile,0);
+            }else{
+                break;
             }
         }
-        else{
-            if (evaluar)
-                procesarBloque(caso.instrucciones, tsSwitch);
-        }
-    });
-}*/
-
-
-
-
-
-
-
-function procesarWHILE(instruccion, tablaDeSimbolos) {
-    // Crear una nueva tabla de símbolos para el ámbito del bucle while
-    const tsWhile = new TS(tablaDeSimbolos.simbolos);
-
-    // Evaluar la condición del bucle while
-    const condicion = procesarExpresionLogica(instruccion.expresionLogica, tsWhile,0);
-
-    // Mientras la condición sea verdadera
-    while (condicion) {
-        // Procesar las instrucciones dentro del bucle while utilizando la tabla de símbolos del ámbito del bucle
-        procesarBloque(instruccion.instrucciones, tsWhile);
     }
 }
 
-
-function procesarPara(instruccion, tablaDeSimbolos) {
-    const valor = procesarExpresionCadena(instruccion.valorVariable, tablaDeSimbolos); //aqui quiero que retorne: tipo y valor
-    let erroractualizacion=tablaDeSimbolos.actualizar(instruccion.variable, valor,instruccion.linea,instruccion.columna);
-    if (erroractualizacion.length==0){
-        for (var i = tablaDeSimbolos.obtener(instruccion.variable); procesarExpresionLogica(instruccion.expresionLogica, tablaDeSimbolos,0);
-        tablaDeSimbolos.actualizar(instruccion.variable, {valor: tablaDeSimbolos.obtener(instruccion.variable).valor + 1, tipo: TIPO_DATO.INT},instruccion.linea,instruccion.columna)) {
-        
-        const tsPara = new TS(tablaDeSimbolos.simbolos);
-        procesarBloque(instruccion.instrucciones, tsPara,1);
-    }       
-    }else{
-        erroreslist.push(...erroractualizacion);
-    }
-   
-    
-}
-
-
-/**
- * Función que se encarga de procesar la instrucción Asignación Simplificada
- Se crea un objeto tipo nuevaOperacionBinaria (expresion):
-  opIzq      -> Valor almacenado del identificador
-  opDer      -> Valor de entrada
-  TIPO_VALOR -> Se define por el tipo de operador (+,-,*,/)
- * @param {*} instruccion
- * @param {*} tablaDeSimbolos 
- */
-function procesarAsignacionSimplificada(instruccion, tablaDeSimbolos) {
-    const expresion =instruccionesAPI.nuevoOperacionBinaria(instruccionesAPI.nuevoValor(instruccion.identificador, TIPO_VALOR.IDENTIFICADOR),instruccion.expresionNumerica, instruccion.operador);
-    const valor = procesarExpresionNumerica(expresion, tablaDeSimbolos);
-
-    let erroractualizacion=tablaDeSimbolos.actualizar(instruccion.identificador, valor,instruccion.linea,instruccion.columna);
-    if (erroractualizacion.length!=0){
-        erroreslist.push(...erroractualizacion);
-    }
- }

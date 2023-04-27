@@ -45,183 +45,90 @@
       {
         "tipo": "INSTR_DECLARACION_CON_ASIGNACION",
         "identificador": "edad",
-        "tipo_dato": "INT",
+        "tipo_dato": "DOUBLE",
         "valor": {
-          "tipo": "VAL_INT",
-          "valor": 285,
+          "tipo": "OP_TERNARIO",
+          "tipodato": "EXPRESION TERNARIO",
+          "expresionLogica": {
+            "operandoIzq": {
+              "tipo": "VAL_IDENTIFICADOR",
+              "valor": "c",
+              "linea": 8,
+              "columna": 16
+            },
+            "operandoDer": {
+              "tipo": "VAL_BOOLEAN",
+              "valor": "false",
+              "linea": 8,
+              "columna": 19
+            },
+            "tipo": "RELACIONAL_DOBLE_IGUAL",
+            "linea": 8,
+            "columna": 16
+          },
+          "instruccionesIfVerdadero": {
+            "tipo": "VAL_DOUBLE",
+            "valor": 3.1,
+            "linea": 8,
+            "columna": 25
+          },
+          "instruccionesIfFalso": {
+            "tipo": "VAL_DOUBLE",
+            "valor": 0.5,
+            "linea": 8,
+            "columna": 29
+          },
           "linea": 8,
-          "columna": 13
+          "columna": 16
         },
         "esGlobal": true,
         "linea": 8,
         "columna": 4
       },
       {
-        "tipo": "SWITCH",
-        "tipodato": "SENTENCIA DE CONTROL",
+        "tipo": "INSTR_ASIGNACION",
+        "identificador": "b",
         "expresionNumerica": {
-          "tipo": "VAL_IDENTIFICADOR",
-          "valor": "edad",
-          "linea": 18,
-          "columna": 12
+          "tipo": "OP_TERNARIO",
+          "tipodato": "EXPRESION TERNARIO",
+          "expresionLogica": {
+            "operandoIzq": {
+              "tipo": "VAL_IDENTIFICADOR",
+              "valor": "b",
+              "linea": 9,
+              "columna": 6
+            },
+            "operandoDer": {
+              "tipo": "VAL_INT",
+              "valor": 1,
+              "linea": 9,
+              "columna": 8
+            },
+            "tipo": "RELACIONAL_MENOR_QUE",
+            "linea": 9,
+            "columna": 6
+          },
+          "instruccionesIfVerdadero": {
+            "tipo": "VAL_INT",
+            "valor": 1,
+            "linea": 9,
+            "columna": 10
+          },
+          "instruccionesIfFalso": {
+            "tipo": "VAL_INT",
+            "valor": 0,
+            "linea": 9,
+            "columna": 12
+          },
+          "linea": 9,
+          "columna": 6
         },
-        "casos": [
-          {
-            "tipo": "CASO",
-            "expresionNumerica": {
-              "tipo": "VAL_INT",
-              "valor": 10,
-              "linea": 19,
-              "columna": 9
-            },
-            "instrucciones": [
-              {
-                "tipo": "INSTR_PRINT",
-                "tipodato": "PRINT",
-                "expresionCadena": {
-                  "tipo": "VAL_STRING",
-                  "valor": "Tengo 10 anios.",
-                  "linea": 20,
-                  "columna": 14
-                },
-                "linea": 20,
-                "columna": 8
-              },
-              {
-                "tipo": "INST_BREAK"
-              }
-            ],
-            "linea": 19,
-            "columna": 4
-          },
-          {
-            "tipo": "CASO",
-            "expresionNumerica": {
-              "tipo": "VAL_INT",
-              "valor": 18,
-              "linea": 22,
-              "columna": 9
-            },
-            "instrucciones": [
-              {
-                "tipo": "INSTR_PRINT",
-                "tipodato": "PRINT",
-                "expresionCadena": {
-                  "tipo": "VAL_STRING",
-                  "valor": "Tengo 18 anios.",
-                  "linea": 23,
-                  "columna": 14
-                },
-                "linea": 23,
-                "columna": 8
-              }
-            ],
-            "linea": 22,
-            "columna": 4
-          },
-          {
-            "tipo": "CASO",
-            "expresionNumerica": {
-              "tipo": "VAL_INT",
-              "valor": 25,
-              "linea": 24,
-              "columna": 9
-            },
-            "instrucciones": [
-              {
-                "tipo": "INSTR_PRINT",
-                "tipodato": "PRINT",
-                "expresionCadena": {
-                  "tipo": "VAL_STRING",
-                  "valor": "Tengo 25 anios.",
-                  "linea": 25,
-                  "columna": 14
-                },
-                "linea": 25,
-                "columna": 8
-              },
-              {
-                "tipo": "INST_BREAK"
-              }
-            ],
-            "linea": 24,
-            "columna": 4
-          },
-          {
-            "tipo": "DEFECTO",
-            "instrucciones": [
-              {
-                "tipo": "INSTR_PRINT",
-                "tipodato": "PRINT",
-                "expresionCadena": {
-                  "tipo": "VAL_STRING",
-                  "valor": "No se que edad tengo. ",
-                  "linea": 29,
-                  "columna": 14
-                },
-                "linea": 29,
-                "columna": 8
-              },
-              {
-                "tipo": "INST_BREAK"
-              }
-            ],
-            "linea": 28,
-            "columna": 4
-          }
-        ],
-        "linea": 18,
+        "linea": 9,
         "columna": 4
       }
     ],
     "linea": 5,
     "columna": 5
-  },
-  {
-    "tipo": "FUNCION",
-    "tipodato": "INT",
-    "id": "lis",
-    "parametros": [],
-    "instrucciones": [
-      {
-        "tipo": "INSTR_DECLARACION",
-        "identificador": "b",
-        "tipo_dato": "STRING",
-        "valor": {
-          "valor": "",
-          "tipo_dato": "STRING"
-        },
-        "esGlobal": true,
-        "linea": 34,
-        "columna": 4
-      },
-      {
-        "tipo": "INSTR_ASIGANCION",
-        "identificador": "b",
-        "expresionNumerica": {
-          "tipo": "VAL_STRING",
-          "valor": "hola",
-          "linea": 35,
-          "columna": 6
-        },
-        "linea": 35,
-        "columna": 4
-      },
-      {
-        "tipo": "SENTENCIA DE TRANSFERENCIA",
-        "tipodato": "RETURN",
-        "expresionNumerica": {
-          "tipo": "VAL_INT",
-          "valor": 2,
-          "linea": 36,
-          "columna": 11
-        },
-        "linea": 36,
-        "columna": 4
-      }
-    ],
-    "linea": 33,
-    "columna": 0
   },
   {
     "tipo": "SENTENCIA_MAIN",
@@ -233,20 +140,20 @@
         {
           "tipo": "VAL_INT",
           "valor": 2,
-          "linea": 39,
+          "linea": 13,
           "columna": 9
         },
         {
           "tipo": "VAL_IDENTIFICADOR",
           "valor": "var2",
-          "linea": 39,
+          "linea": 13,
           "columna": 11
         }
       ],
-      "linea": 39,
+      "linea": 13,
       "columna": 5
     },
-    "linea": 39,
+    "linea": 13,
     "columna": 0
   }
 ]

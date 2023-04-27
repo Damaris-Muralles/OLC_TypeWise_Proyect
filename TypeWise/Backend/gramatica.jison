@@ -30,29 +30,29 @@ let prevToken = '';
 
 //============PALABRAS RESERVADAS=========================================================================
 
-"int"			    return 'T_INT';
-"double"			return 'T_DOUBLE';
-"boolean"			return 'T_BOOLEAN';
-"char"			    return 'T_CHAR';
-"string"			return 'T_STRING';
-"switch"			return 'T_SWITCH';
-"case"				return 'T_CASE';
-"default"			return 'T_DEFAULT';
-"if"				return 'T_IF';
-"else"				return 'T_ELSE';
+"int"			    return 'T_INT'; //ya
+"double"			return 'T_DOUBLE'; //ya
+"boolean"			return 'T_BOOLEAN'; //ya
+"char"			    return 'T_CHAR'; //ya
+"string"			return 'T_STRING'; //ya
+"switch"			return 'T_SWITCH'; //ya
+"case"				return 'T_CASE'; //ya
+"default"			return 'T_DEFAULT'; //ya
+"if"				return 'T_IF'; //ya
+"else"				return 'T_ELSE'; //ya
 "do"				return 'T_DO';
 "while"				return 'T_WHILE';
 "for"				return 'T_FOR';
 "list"				return 'T_LIST';
 "add"				return 'T_ADD';
 "new"				return 'T_NEW';
-"break"				return 'T_BREAK';
+"break"				return 'T_BREAK'; //ya
 "continue"			return 'T_CONTINUE';
-"return"			return 'T_RETURN';
-"print"				return 'T_PRINT';
+"return"			return 'T_RETURN'; //ya
+"print"				return 'T_PRINT'; //ya
 
 //==============================funciones metodos=============================================
-"void"				return 'T_VOID';
+"void"				return 'T_VOID'; //ya
 "length"			return 'T_LENGTH';
 "tochararray"		return 'T_TOCHARARRAY';
 "tolower"			return 'T_TOLOWER';
@@ -61,7 +61,7 @@ let prevToken = '';
 "truncate"			return 'T_TRUNCATE';
 "typeof"			return 'T_TYPEOF';
 "round"			    return 'T_ROUND';
-"main"				return 'T_MAIN';
+"main"				return 'T_MAIN'; //ya
 
 
 //============OPERADORES RELACIONALES ================================================================================================
@@ -93,8 +93,8 @@ let prevToken = '';
 "!"					return 'NOT';
 "&&"				return 'AND'
 "||"				return 'OR';
-//"++"				return 'AUMENTO';
-//"--"				return 'DECREMENTO';
+"++"				return 'AUMENTO';
+"--"				return 'DECREMENTO';
 
 
 //================OPERADORES ARITMETICOS========================================================================
@@ -165,7 +165,7 @@ let prevToken = '';
 %right 'NOT'
 %left 'AND'
 %left 'OR'
-//%right 'PARIZQ'
+%nonassoc 'INTERROGACION'
 
 
 /* ========================================GRAMATICA======= */
@@ -212,17 +212,22 @@ declaracion
         { $$ = instruccionesAPI.nuevoDeclaracion($2,TIPO_DATO.BOOLEAN, true,@1.first_line, @1.first_column); }
     | tipos IGUAL expresion
         { $$ = instruccionesAPI.nuevoDecAsig($1.identificador,$1.tipo,$3, true,@1.first_line, @1.first_column); }
+	| tipos IGUAL ternarioop
+        { $$ = instruccionesAPI.nuevoDecAsig($1.identificador,$1.tipo,$3, true,@1.first_line, @1.first_column); }
 	| T_BOOLEAN IDENTIFICADOR IGUAL expresion 
         { $$ = instruccionesAPI.nuevoDecAsig($2,TIPO_DATO.BOOLEAN,$4, true,@1.first_line, @1.first_column); }
     | T_BOOLEAN IDENTIFICADOR IGUAL expresion_logica 
         { $$ = instruccionesAPI.nuevoDecAsig($2,TIPO_DATO.BOOLEAN,$4,  true,@1.first_line, @1.first_column); }
-    
+    | T_BOOLEAN IDENTIFICADOR IGUAL ternarioop
+        { $$ = instruccionesAPI.nuevoDecAsig($2,TIPO_DATO.BOOLEAN,$4,  true,@1.first_line, @1.first_column); }
 ;
 
 asignacion
 	: IDENTIFICADOR IGUAL expresion 
         { $$ = instruccionesAPI.nuevoAsignacion($1,$3,@1.first_line, @1.first_column); }
     | IDENTIFICADOR IGUAL expresion_logica 
+        { $$ = instruccionesAPI.nuevoAsignacion($1,$3,@1.first_line, @1.first_column); }
+	| IDENTIFICADOR IGUAL ternarioop 
         { $$ = instruccionesAPI.nuevoAsignacion($1,$3,@1.first_line, @1.first_column); }
 ;
 
@@ -295,6 +300,8 @@ instruccionmetodo
 	| sentenciacontrolIF { $$ = $1; }
 	| sentenciacontrolswitch{ $$ = $1; }
 	| sentenciabreak{ $$ = $1; }
+	| incrementoDec  PTCOMA{ $$ = $1; }
+	|ciclos{ $$ = $1; }
 	| error  { 
 					ubicacion = {
 						first_line: @1.first_line,
@@ -316,6 +323,8 @@ instruccionfuncion
 	| sentenciacontrolswitch{ $$ = $1; }
 	| sentenciabreak{ $$ = $1; }
 	| retornos  { $$ = $1; }
+    | incrementoDec  PTCOMA{ $$ = $1; }
+	| ciclos{ $$ = $1; }
 	| error  { 
 					ubicacion = {
 						first_line: @1.first_line,
@@ -328,7 +337,7 @@ instruccionfuncion
 					}
 ;
 expresion
-	:  CADENA											{ $$ = instruccionesAPI.nuevoValor($1, TIPO_VALOR.CADENA,@1.first_line, @1.first_column); }
+	: CADENA											{ $$ = instruccionesAPI.nuevoValor($1, TIPO_VALOR.CADENA,@1.first_line, @1.first_column); }
 	| ENTERO											{ $$ = instruccionesAPI.nuevoValor(Number($1), TIPO_VALOR.INT,@1.first_line, @1.first_column); }
 	| DECIMAL											{ $$ = instruccionesAPI.nuevoValor(Number($1), TIPO_VALOR.DOUBLE,@1.first_line, @1.first_column); }
 	| BOOLEANO											{ $$ = instruccionesAPI.nuevoValor($1, TIPO_VALOR.BOOLEAN,@1.first_line, @1.first_column); }
@@ -347,7 +356,8 @@ expresion
 	| expresion POTENCIA expresion						{ $$ = instruccionesAPI.nuevoOperacionBinaria($1, $3, TIPO_EXPRESION.POTENCIA,@1.first_line, @1.first_column); }
 	| expresion MODULO expresion						{ $$ = instruccionesAPI.nuevoOperacionBinaria($1, $3, TIPO_EXPRESION.MODULO,@1.first_line, @1.first_column); }
 	| PARIZQ expresion PARDER							{ $$ = $2; }
-	| llamada_funcion                 					 { $$ = $1; }
+	| llamada_funcion                 					{ $$ = $1; }
+	| incrementoDec										{ $$ = $1; }
 	
 ;
 expresion_relacional
@@ -406,8 +416,14 @@ caso_evaluar
     	{ $$ = instruccionesAPI.nuevoCasoDef($3,@1.first_line, @1.first_column); }
 ;
 
+ternarioop
+	:| expresion_logica INTERROGACION expresion DOSPTS expresion { $$ = instruccionesAPI.nuevoOperacionTernario($1, $3,$5,@1.first_line, @1.first_column); }
+;
+
 retornos
 	:T_RETURN expresionescompuestas PTCOMA 
+		 {$$ = instruccionesAPI.nuevoReturn($2,@1.first_line, @1.first_column);}
+	| T_RETURN ternarioop PTCOMA 
 		 {$$ = instruccionesAPI.nuevoReturn($2,@1.first_line, @1.first_column);}
 ;
 sentenciabreak
@@ -415,22 +431,32 @@ sentenciabreak
         { $$ = instruccionesAPI.nuevoBreak(); }
 ;
 
-
-//
-	//| T_WHILE PARIZQ expresion_logica PARDER LLAVIZQ instrucciones LLAVDER
-		//												{ $$ = instruccionesAPI.nuevoWHILE($3, $6); }
-	//| T_FOR PARIZQ IDENTIFICADOR IGUAL expresion_numerica PTCOMA expresion_logica PTCOMA IDENTIFICADOR MAS MAS PARDER LLAVIZQ instrucciones LLAVDER
-	//													{ $$ = instruccionesAPI.nuevoPara($3,$5,$7,$9,$14) }
+ciclos
+	:T_WHILE PARIZQ expresion_logica PARDER LLAVIZQ instruccionesfuncion LLAVDER
+		{ $$ = instruccionesAPI.nuevoWHILE($3, $6,@1.first_line, @1.first_column); }
+	| T_DO LLAVIZQ instruccionesfuncion LLAVDER T_WHILE PARIZQ expresion_logica PARDER PTCOMA
+		{ $$ = instruccionesAPI.nuevoDOWHILE($3, $7,@1.first_line, @1.first_column); }
+	| T_FOR PARIZQ incializarfor PTCOMA expresion_relacional PTCOMA actualizar PARDER LLAVIZQ instruccionesfuncion LLAVDER
+		{ $$ = instruccionesAPI.nuevoPara($3,$5,$7,$10,@1.first_line, @1.first_column) }
 	
+;
 
+incializarfor
+	:IDENTIFICADOR IGUAL expresion
+		{ $$ = instruccionesAPI.nuevoAsignacion($1,$3,@1.first_line, @1.first_column); }
+	|tipos IGUAL expresion 
+		{ $$ = instruccionesAPI.nuevoDecAsig($1.identificador,$1.tipo,$3, true,@1.first_line, @1.first_column); }
+;
+actualizar
+	:IDENTIFICADOR IGUAL expresion
+		{ $$ = instruccionesAPI.nuevoAsignacion($1,$3,@1.first_line, @1.first_column); }
+	|incrementoDec { $$ = $1; }
+;
 
-	//| 
-	
-	
-
-
-
-
+incrementoDec
+	: IDENTIFICADOR AUMENTO {$$ = instruccionesAPI.nuevoAumDec("INCREMENTO", $1,@1.first_line, @1.first_column); }
+	| IDENTIFICADOR DECREMENTO {$$ = instruccionesAPI.nuevoAumDec("DECREMENTO", $1,@1.first_line, @1.first_column);}
+;
 
 
 

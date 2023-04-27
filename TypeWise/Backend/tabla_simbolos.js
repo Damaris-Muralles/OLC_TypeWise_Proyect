@@ -115,7 +115,7 @@ class TS {
             this.padre.actualizar(id, valor, linea, columna);
         } else {
             // manejar el caso en que el símbolo no se encuentra en ningún ámbito
-            tsrepetidos.push({tipo:"Semantico",descripcion:'variable: ' + id + ' no ha sido definida',lineaerror:simbolo.linea,columnaerror:simbolo.columna});
+            tsrepetidos.push({tipo:"Semantico",descripcion:'variable: ' + id + ' no ha sido definida',lineaerror:linea,columnaerror:columna});
             console.log( 'ERROR: variable: ' + id + ' no ha sido definida');
         }
         return tsrepetidos;
@@ -123,6 +123,7 @@ class TS {
 
   
     obtener(id, linea, columna) {
+        console.log("obtener",id)
         let tsrepetidos=[];
         // Buscar la variable en la tabla de símbolos local
         console.log(id)

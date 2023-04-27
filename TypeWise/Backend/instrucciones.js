@@ -19,6 +19,7 @@ const TIPO_EXPRESION = {
 	POTENCIA:       'OP_POTENCIA',
 	MODULO:       	'OP_MODULO',
 
+
 	MAYOR_QUE:      'RELACIONAL_MAYOR_QUE',
 	MENOR_QUE:      'RELACIONAL_MENOR_QUE',
 	MAYOR_IGUAL: 	'RELACIONAL_MAYOR_IGUAL',
@@ -31,6 +32,7 @@ const TIPO_EXPRESION = {
 	NOT:   			'LOGICO_NOT',  	
 	
 	CONCATENACION:  'OP_CONCATENACION',
+	TERNARIO:		'OP_TERNARIO',
 	LLAMADA: 		'LLAMADA',
 	RETORNO:		'RETURN'
 };
@@ -38,21 +40,24 @@ const TIPO_EXPRESION = {
 // Constantes para los tipos de 'instrucciones' válidas en nuestra gramática.
 const TIPO_INSTRUCCION = {
 	PRINT:			'INSTR_PRINT',
-	WHILE:			'INSTR_WHILE',
 	DECLARACION:	'INSTR_DECLARACION',
-	ASIGNACION:		'INSTR_ASIGANCION',
+	ASIGNACION:		'INSTR_ASIGNACION',
 	DECLARACION_CON_ASIGNACION:	'INSTR_DECLARACION_CON_ASIGNACION',
 	IF:				'INSTR_IF',
 	IF_ELSE:		'INSTR_ELSE',
-	PARA: 			'INST_PARA',
-	SWITCH:			'SWITCH',
+	SWITCH:			'INST_SWITCH',
 	SWITCH_OP:		'SWITCH_OP',
 	SWITCH_DEF:		'SWITCH_DEF',
-	ASIGNACION_SIMPLIFICADA: 'ASIGNACION_SIMPLIFICADA',
 	PRINCIPAL: 		'SENTENCIA_MAIN',
 	METODOS:        'METODO',
 	FUNCIONES:      'FUNCION',
-	BREAK:      'INST_BREAK'
+	BREAK:      	'INST_BREAK',
+	PARA: 			'INST_PARA',
+	WHILE:			'INSTR_WHILE',//no
+	DOWHILE:			'INSTR_DO_WHILE',//no
+	AUMENTOS:		'INSTR_AUMENTO_DECREMENTO',
+	ASIGNACION_SIMPLIFICADA: 'ASIGNACION_SIMPLIFICADA' //no
+
 }
 
 // Constantes para los tipos de OPCION_SWITCH validas en la gramática
@@ -267,9 +272,63 @@ const instruccionesAPI = {
 			columna: columna
 		}
 	},
+	nuevoOperacionTernario: function(expresionLogica, instruccionesIfVerdadero, instruccionesIfFalso,linea,columna) {
+		return {
+			tipo: TIPO_EXPRESION.TERNARIO,
+			tipodato: "EXPRESION TERNARIO",
+			expresionLogica: expresionLogica,
+			instruccionesIfVerdadero: instruccionesIfVerdadero,
+			instruccionesIfFalso: instruccionesIfFalso,
+			linea:linea,
+			columna: columna
+		}
+	},
 
+	
+	nuevoWHILE: function(expresionLogica, instrucciones,linea,columna) {
+		return {
+			tipo: TIPO_INSTRUCCION.WHILE,
+			tipodato:"SENTENCIA CICLICA",
+			expresionLogica: expresionLogica,
+			instrucciones: instrucciones,
+			linea: linea,
+			columna: columna
+		};
+	},
+	
+	nuevoDOWHILE: function( instrucciones,expresionLogica,linea,columna) {
+		return {
+			tipo: TIPO_INSTRUCCION.DOWHILE,
+			tipodato:"SENTENCIA CICLICA",
+			expresionLogica: expresionLogica,
+			instrucciones: instrucciones,
+			linea: linea,
+			columna: columna
+		};
+	},
 
+	nuevoPara: function (variable,  expresionLogica, aumento, instrucciones,linea,columna) {
+		return {
+			tipo: TIPO_INSTRUCCION.PARA,
+			tipodato:"SENTENCIA CICLICA",
+			expresionLogica: expresionLogica,
+			instrucciones: instrucciones,
+			aumento: aumento,
+			variable: variable, 
+			linea:linea,
+			columna: columna
+		}
+	},
 
+	nuevoAumDec:function (tipodeinstruccion,identificador,linea,columna) {
+		return {
+			tipo: TIPO_INSTRUCCION.AUMENTOS,
+			tipodato:tipodeinstruccion,
+			identificador: identificador,
+			linea:linea,
+			columna: columna
+		}
+	},
 
 
 
@@ -281,36 +340,13 @@ const instruccionesAPI = {
 			expresionNumerica: expresionNumerica,
 			identificador : identificador,
 			linea: linea,
-			columna: columna,
+			columna: columna
 
 		} 
 	},
 	
 
 
-
-	nuevoWHILE: function(expresionLogica, instrucciones,linea,columna) {
-		return {
-			tipo: TIPO_INSTRUCCION.WHILE,
-			tipodato:"SENTENCIA CICLICA",
-			expresionLogica: expresionLogica,
-			instrucciones: instrucciones
-		};
-	},
-
-	nuevoPara: function (variable, valorVariable, expresionLogica, aumento, instrucciones,linea,columna) {
-		return {
-			tipo: TIPO_INSTRUCCION.PARA,
-			tipodato:"SENTENCIA CICLICA",
-			expresionLogica: expresionLogica,
-			instrucciones: instrucciones,
-			aumento: aumento,
-			variable: variable,
-			valorVariable: valorVariable,
-			linea:linea,
-			columna: columna
-		}
-	},
 
 	nuevoOperador: function(operador){
 		return operador 
