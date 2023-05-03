@@ -6,6 +6,9 @@
 
 // FUNCIONES PARA HACER DINAMICA LA INTERFAZ
 
+let grapharbol="";
+let graphts="";
+let grapherror="";
 // Para el Navbar
 let navLinks = document.querySelectorAll('.nav-link');
 navLinks[0].classList.add('active');
@@ -76,17 +79,6 @@ function changePDF(file, link) {
   link.classList.add('active');
 }
 
-function changeReport(file, link) {
-  // Código para cambiar la imagen en el elemento .viewreport
-  var reportImage = document.querySelector('#report-image');
-  reportImage.src = 'Img/' + file;
-
-  var links = document.querySelectorAll('.reportestile');
-  links.forEach(function(link) {
-    link.classList.remove('active');
-  });
-  link.classList.add('active');
-}
 
 // funcio para ver el offcamvas
 function showOffcanvas(event) {
@@ -97,15 +89,24 @@ function showOffcanvas(event) {
 }
 
 // Cambiar imagen de reporte segun lo seleccionado
-function changeImage(imageName) {
-  var imageElement = document.querySelector('#reportes img');
-  imageElement.src = 'Img/' + imageName;
+function changeImage(text) {
+  let cadena="";
+   if (text=="1"){ 
+       cadena=grapherror;
+   }else if(text=="2"){
+      cadena=graphts;
+   }else{
+      cadena= grapharbol;
+   }
+  d3.select("#imagenrep").graphviz()
+  .width("1000px")
+  .height("500px")
+  .renderDot(cadena);
   var offcanvasElement = document.getElementById('offcanvasRight');
   var offcanvas = bootstrap.Offcanvas.getInstance(offcanvasElement);
   offcanvas.hide();
+
 }
-
-
 
 
 // FUNCIONES PARA EL EDITOR
@@ -147,7 +148,7 @@ addTabBtn.addEventListener('click', () => {
         <textarea id="myeditor${newTabNum}"></textarea>
       </div>
       <div class="containerconsola">
-        <textarea id="myconsole${newTabNum}">resultado</textarea>
+        <textarea id="myconsole${newTabNum}"></textarea>
       </div>
     </div>`;
  // Agregar el nuevo contenido al DOM
@@ -162,7 +163,9 @@ addTabBtn.addEventListener('click', () => {
     hintOptions: {
       hint: myHint,
       completeSingle: false
-    }
+    },
+    linerWrapping: true,
+    indentWithTabs: true
   });
   //controlador de eventos del editor
 editor.on("keyup", function(editor, event) {
@@ -170,6 +173,52 @@ editor.on("keyup", function(editor, event) {
   if (keyCode !== 38 && keyCode !== 40) {
     editor.showHint();
   }
+  if (event.key === 'Enter' && editor.state.completionActive) {
+    editor.state.completionActive.close();
+  }
+});
+editor.on('keydown', function(cm, event) {
+  if (event.key === '\"') {
+    event.preventDefault();
+    var cursor = cm.getCursor();
+    cm.replaceRange('\"\"', cursor);
+    cm.setCursor({line: cursor.line, ch: cursor.ch + 1});
+  }
+  if (event.key === '\'') {
+    event.preventDefault();
+    var cursor = cm.getCursor();
+    cm.replaceRange('\'\'', cursor);
+    cm.setCursor({line: cursor.line, ch: cursor.ch + 1});
+  }
+  if (event.key === '(') {
+    event.preventDefault();
+    var cursor = cm.getCursor();
+    cm.replaceRange('()', cursor);
+    cm.setCursor({line: cursor.line, ch: cursor.ch + 1});
+  }
+  if (event.key === '{') {
+    event.preventDefault();
+    var cursor = cm.getCursor();
+    const line = cm.getLine(cursor.line);
+    const indentation = line.match(/^\s*/)[0];
+    cm.replaceRange(`{}`, cursor);
+    cm.setCursor({ line: cursor.line , ch: cursor.ch +1});
+} 
+if (event.key === 'Enter') {
+  event.preventDefault();
+  var cursor = cm.getCursor();
+  const line = cm.getLine(cursor.line);
+  const indentation = line.match(/^\s*/)[0];
+
+  const textBeforeCursor = cm.getRange({ line: 0, ch: 0 }, cursor);
+  const match = textBeforeCursor.match(/[^{]*\{([^}]*)$/);
+  if (match && !match[1].trim().endsWith(';')) {
+    cm.replaceRange(`\n${indentation}\t\n${indentation}`, cursor);
+    cm.setCursor({ line: cursor.line + 1, ch: indentation.length + 1 });
+  } else {
+    cm.execCommand('newlineAndIndent');
+  }
+}
 });
   const consoleEditor = CodeMirror.fromTextArea(document.getElementById(`myconsole${newTabNum}`), {
     lineNumbers: true,
@@ -217,7 +266,13 @@ saveBtn.addEventListener('click', () => {
   a.download = `Archivo${newTabNum}.tw`;
   a.click();
 });
- 
+  // Agregar acción al botón "Ejecutar"
+  const executeBtn = newTabContent.querySelector('.btn-info:nth-child(3)');
+  executeBtn.addEventListener('click', () => {
+    const editorContent = editor.getValue();
+    ejecutaranalizador(editorContent,consoleEditor);
+  });
+
   // Agregar event listeners a las nuevas pestañas y contenido
   newTab.addEventListener('click', () => {
     const tabNum = newTab.dataset.tab;
@@ -290,21 +345,23 @@ firstTabContent.innerHTML = `<button type="button" class="btn btn-info">Abrir</b
     <textarea id="myeditor1"></textarea>
   </div>
   <div class="containerconsola">
-    <textarea id="myconsole1">resultado</textarea>
+    <textarea id="myconsole1"></textarea>
   </div>
 </div>`;
 // esta funcion obliga a que la pagina termine de cargar para realizar las acciones
 window.onload = function() {
 
   // convierte el textarea en editor
-  const editor = CodeMirror.fromTextArea(document.getElementById('myeditor1'), {
+  const editor = CodeMirror.fromTextArea(document.getElementById(`myeditor1`), {
     lineNumbers: true,
     mode: "text/x-typewise",
     theme:"tomorrow-night-bright",
     hintOptions: {
       hint: myHint,
       completeSingle: false
-    }
+    },
+    linerWrapping: true,
+    indentWithTabs: true
   });
   //controlador de eventos del editor
 editor.on("keyup", function(editor, event) {
@@ -312,6 +369,52 @@ editor.on("keyup", function(editor, event) {
   if (keyCode !== 38 && keyCode !== 40) {
     editor.showHint();
   }
+  if (event.key === 'Enter' && editor.state.completionActive) {
+    editor.state.completionActive.close();
+  }
+});
+editor.on('keydown', function(cm, event) {
+  if (event.key === '\"') {
+    event.preventDefault();
+    var cursor = cm.getCursor();
+    cm.replaceRange('\"\"', cursor);
+    cm.setCursor({line: cursor.line, ch: cursor.ch + 1});
+  }
+  if (event.key === '\'') {
+    event.preventDefault();
+    var cursor = cm.getCursor();
+    cm.replaceRange('\'\'', cursor);
+    cm.setCursor({line: cursor.line, ch: cursor.ch + 1});
+  }
+  if (event.key === '(') {
+    event.preventDefault();
+    var cursor = cm.getCursor();
+    cm.replaceRange('()', cursor);
+    cm.setCursor({line: cursor.line, ch: cursor.ch + 1});
+  }
+  if (event.key === '{') {
+    event.preventDefault();
+    var cursor = cm.getCursor();
+    const line = cm.getLine(cursor.line);
+    const indentation = line.match(/^\s*/)[0];
+    cm.replaceRange(`{}`, cursor);
+    cm.setCursor({ line: cursor.line , ch: cursor.ch +1});
+} 
+if (event.key === 'Enter') {
+  event.preventDefault();
+  var cursor = cm.getCursor();
+  const line = cm.getLine(cursor.line);
+  const indentation = line.match(/^\s*/)[0];
+
+  const textBeforeCursor = cm.getRange({ line: 0, ch: 0 }, cursor);
+  const match = textBeforeCursor.match(/[^{]*\{([^}]*)$/);
+  if (match && !match[1].trim().endsWith(';')) {
+    cm.replaceRange(`\n${indentation}\t\n${indentation}`, cursor);
+    cm.setCursor({ line: cursor.line + 1, ch: indentation.length + 1 });
+  } else {
+    cm.execCommand('newlineAndIndent');
+  }
+}
 });
   const consoleEditor = CodeMirror.fromTextArea(document.getElementById('myconsole1'), {
     lineNumbers: true,
@@ -358,6 +461,15 @@ editor.on("keyup", function(editor, event) {
       a.download = 'Archivo1.tw';
       a.click();
     });
+    // Agregar acción al botón "Ejecutar"
+    const executeBtn = firstTabContent.querySelector('.btn-info:nth-child(3)');
+    console.log(executeBtn)
+    executeBtn.addEventListener('click', () => {
+      const editorContent = editor.getValue();
+      ejecutaranalizador(editorContent,consoleEditor);
+     
+     
+    });
   
 }
 
@@ -388,26 +500,75 @@ firstCloseBtn.addEventListener('click', e => {
         <textarea id="myeditor${tabNum}"></textarea>
       </div>
       <div class="containerconsola">
-        <textarea id="myconsole${tabNum}">resultado</textarea>
+        <textarea id="myconsole${tabNum}"></textarea>
       </div>
     </div>`;
 
     // crea los editores y consola
-  const editor = CodeMirror.fromTextArea(document.getElementById(`myeditor${tabNum}`), {
-    lineNumbers: true,
-    mode: "text/x-typewise",
-    theme:"tomorrow-night-bright",
-    hintOptions: {
-      hint: myHint,
-      completeSingle: false
-    }
-  });
+    const editor = CodeMirror.fromTextArea(document.getElementById(`myeditor${tabNum}`), {
+      lineNumbers: true,
+      mode: "text/x-typewise",
+      theme:"tomorrow-night-bright",
+      hintOptions: {
+        hint: myHint,
+        completeSingle: false,
+          closeOnUnfocus: true
+      },
+      linerWrapping: true,
+      indentWithTabs: true
+    });
   //controlador de eventos del editor
 editor.on("keyup", function(editor, event) {
   const keyCode = event.keyCode;
   if (keyCode !== 38 && keyCode !== 40) {
     editor.showHint();
   }
+  if (event.key === 'Enter' && editor.state.completionActive) {
+    editor.state.completionActive.close();
+  }
+});
+editor.on('keydown', function(cm, event) {
+  if (event.key === '\"') {
+    event.preventDefault();
+    var cursor = cm.getCursor();
+    cm.replaceRange('\"\"', cursor);
+    cm.setCursor({line: cursor.line, ch: cursor.ch + 1});
+  }
+  if (event.key === '\'') {
+    event.preventDefault();
+    var cursor = cm.getCursor();
+    cm.replaceRange('\'\'', cursor);
+    cm.setCursor({line: cursor.line, ch: cursor.ch + 1});
+  }
+  if (event.key === '(') {
+    event.preventDefault();
+    var cursor = cm.getCursor();
+    cm.replaceRange('()', cursor);
+    cm.setCursor({line: cursor.line, ch: cursor.ch + 1});
+  }
+  if (event.key === '{') {
+    event.preventDefault();
+    var cursor = cm.getCursor();
+    const line = cm.getLine(cursor.line);
+    const indentation = line.match(/^\s*/)[0];
+    cm.replaceRange(`{}`, cursor);
+    cm.setCursor({ line: cursor.line , ch: cursor.ch +1});
+} 
+if (event.key === 'Enter') {
+  event.preventDefault();
+  var cursor = cm.getCursor();
+  const line = cm.getLine(cursor.line);
+  const indentation = line.match(/^\s*/)[0];
+
+  const textBeforeCursor = cm.getRange({ line: 0, ch: 0 }, cursor);
+  const match = textBeforeCursor.match(/[^{]*\{([^}]*)$/);
+  if (match && !match[1].trim().endsWith(';')) {
+    cm.replaceRange(`\n${indentation}\t\n${indentation}`, cursor);
+    cm.setCursor({ line: cursor.line + 1, ch: indentation.length + 1 });
+  } else {
+    cm.execCommand('newlineAndIndent');
+  }
+}
 });
   const consoleEditor = CodeMirror.fromTextArea(document.getElementById(`myconsole${tabNum}`), {
     lineNumbers: true,
@@ -436,6 +597,7 @@ editor.on("keyup", function(editor, event) {
     
     // Agregar acción al botón "Guardar"
     const saveBtn = firstTabContent.querySelector('.btn-info:nth-child(2)');
+    console.log(saveBtn)
     saveBtn.addEventListener('click', () => {
       const text = editor.getValue();
       if (!text) {
@@ -453,6 +615,14 @@ editor.on("keyup", function(editor, event) {
       a.download = `Archivo${tabNum}.tw`;
       a.click();
     });
+
+    // Agregar acción al botón "Ejecutar"
+    const executeBtn = firstTabContent.querySelector('.btn-info:nth-child(3)');
+    console.log(executeBtn)
+    executeBtn.addEventListener('click', () => {
+      const editorContent = editor.getValue();
+      ejecutaranalizador(editorContent,consoleEditor);
+    });
   
     tabCounter = 1;
   } else {
@@ -464,3 +634,46 @@ editor.on("keyup", function(editor, event) {
     }
   }
 });
+
+
+function ejecutaranalizador (entrada,consoleEditor){
+  let ast=null;
+  try {
+    let grapharbol="";
+let graphts="";
+let grapherror="";
+     
+      ast = gramatica.parse(entrada.toString());
+     
+      // imrimimos en un archivo el contendio del AST en formato JSON
+      /*const blob = new Blob([JSON.stringify(ast, null, 2)], {type: 'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'ast.json';
+      a.click();*/
+  } catch (e) {
+      console.error(e);
+  }
+
+
+  // Crear una tabla de símbolos para el ámbito global
+  var tsGlobal = new TS([], null);
+
+
+  if (errores.length>0){
+    const stringd = errores.map(item => item.consola).join("\n");
+    consoleEditor.setValue("");
+    consoleEditor.setValue(stringd);
+    grapherror=generateERRORES(errores, 0) ;
+  }else{
+  // Procesamos las instrucciones reconocidas en nuestro AST
+    grapharbol=generateDot(ast);
+    consoleEditor.setValue("");
+    let res=procesarInstrucionesGlobales(ast, tsGlobal,consoleEditor);
+    graphts= res.ts;
+    grapherror=res.errort;
+  }
+
+}
+

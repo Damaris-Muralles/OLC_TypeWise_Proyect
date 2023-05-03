@@ -1,71 +1,73 @@
-/*CodeMirror.defineMode("typewise", function() {
-    return {
-      token: function(stream) {
-        if (stream.match("if") || stream.match("else")) {
+
+
+CodeMirror.defineMode("typewise", function() {
+    
+  return {
+    startState: function() {
+      return { enComentario: false, enFuncion: false };
+      },
+      token: function(stream,state) {
+        if (state.enComentario) {
+          if (stream.match("*/")) {
+              state.enComentario = false;
+          } else {
+              stream.next();
+          }
+          return "comentario";
+        } else if (stream.match("/*")) {
+          state.enComentario = true;
+          return "comentario";
+        }else if  ((stream.sol() || /\s/.test(stream.string.charAt(stream.start - 1))) &&(stream.match(/int/i) || stream.match(/double/i) || stream.match(/boolean/i) || stream.match(/char/i) || stream.match(/string/i))) {
+          return "property";
+        } else if  ((stream.sol() || /\s/.test(stream.string.charAt(stream.start - 1))) && (stream.match(/switch/i) || stream.match(/if/i) || stream.match(/else/i) || stream.match(/do/i) || stream.match(/while/i) || stream.match(/for/i)) ){
           return "keyword";
-        }
-        if (stream.match("true") || stream.match("false")) {
+        } else if  ((stream.sol() || /\s/.test(stream.string.charAt(stream.start - 1))) && (stream.match(/break/i) || stream.match(/continue/i) || stream.match(/return/i) || stream.match(/case/i) || stream.match(/default/i))) {
           return "atom";
+        } else if  ((stream.sol() || /\s/.test(stream.string.charAt(stream.start - 1))) &&(stream.match(/main/i) || stream.match(/void/i)) ){
+          return "variable-2";
+        } else if ((stream.sol() || /\s/.test(stream.string.charAt(stream.start - 1))) && (stream.match(/length/i) || stream.match(/tochararray/i) || stream.match(/tolower/i) || stream.match(/toupper/i) || stream.match(/round/i) || stream.match(/tostring/i) || stream.match(/truncate/i) || stream.match(/typeof/i))) {
+          return "def";
+        } else if ((stream.sol() || /\s/.test(stream.string.charAt(stream.start - 1))) && (stream.match(/list/i)) ){
+          return "property";
+        }else if  ((stream.sol() || /\s/.test(stream.string.charAt(stream.start - 1))) &&(stream.match(/print/i) || stream.match(/add/i)|| stream.match(/new/i))) {
+          return "fucionnt";
+        } else  if (stream.match(/\d+/)) {
+        return "number";
+        } else if (stream.match(/\d+\.\d+/)) {
+          
+          return "atom";
+        } else if  ((stream.sol() || /\s/.test(stream.string.charAt(stream.start - 1))) && (stream.match(/true/i) || stream.match(/false/i))) {
+            return "variable-2";
+        } else if (stream.match("//")) {
+        stream.skipToEnd();
+        return "comentario";
+        } else if (stream.match(/\'[^\']\'/)) {
+            return "texto";
+        } else if (stream.match(/\"(\\.|[^"\\])*\"/)) {
+            return "texto";
+        } else if (stream.match(/\w+\s*\(/)) {
+          state.enFuncion = true;
+          stream.backUp(1);
+          return "llamada";
+        } else if (state.enFuncion && stream.match("(")) {
+          return "bracket1";
+        } else if (state.enFuncion && stream.match(")")) {
+          state.enFuncion = false;
+          return "bracket1";
+          
         }
+
+       
         stream.next();
         return null;
       }
     };
-  });*/
+  });
 
-  /*CodeMirror.defineMode("mimodo", function(config, parserConfig) {
-  // Crea una instancia del analizador de Jison
-  var parser = new MiAnalizadorJison();
 
-  return {
-    token: function(stream, state) {
-      // Utiliza el analizador de Jison para obtener el siguiente token
-      var token = parser.getNextToken(stream);
-
-      // Devuelve la clase CSS adecuada para este token
-      if (token.type === "palabraclave") {
-        return "cm-keyword";
-      } else if (token.type === "variable") {
-        return "cm-variable";
-      } else {
-        // ...
-      }
-    }
-  };
-});
   
-  "int"			    return 'T_INT';
-"double"			return 'T_DOUBLE';
-"boolean"			return 'T_BOOLEAN';
-"char"			    return 'T_CHAR';
-"string"			return 'T_STRING';
-"switch"			return 'T_SWITCH';
-"case"				return 'T_CASE';
-"default"			return 'T_DEFAULT';
-"if"				return 'T_IF';
-"else"				return 'T_ELSE';
-"do"				return 'T_DO';
-"while"				return 'T_WHILE';
-"for"				return 'T_FOR';
-"list"				return 'T_LIST';
-"add"				return 'T_ADD';
-"new"				return 'T_NEW';
-"break"				return 'T_BREAK';
-"continue"			return 'T_CONTINUE';
-"return"			return 'T_RETURN';
-"true"				return 'T_TRUE';
-"false"				return 'T_FALSE';
-"print"				return 'T_PRINT';
-"void"				return 'T_VOID';
-"length"			return 'T_LENGTH';
-"typeof"			return 'T_TYPEOF';
-"tolower"			return 'T_TOLOWER';
-"toupper"			return 'T_TOUPPER';
-"tostring"			return 'T_TOSTRING';
-"tochararray"		return 'T_TOCHARARRAY';
-"truncate"			return 'T_TRUNCATE';
-"round"			    return 'T_ROUND';
-"main"				return 'T_MAIN'; */
+
+
 
 CodeMirror.defineMIME("text/x-typewise", "typewise");
 
@@ -84,3 +86,4 @@ function myHint(editor, options) {
       to: CodeMirror.Pos(cursor.line, end)
     };
 }
+

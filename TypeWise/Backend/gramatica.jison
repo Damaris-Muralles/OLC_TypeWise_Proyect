@@ -5,14 +5,9 @@
 /* Definición Léxica */
 // ================================IMPORTACIONES==================================================================
 %{
-	const TIPO_EXPRESION	= require('./instrucciones').TIPO_EXPRESION;
-	const TIPO_INSTRUCCION =require('./instrucciones').TIPO_INSTRUCCION;
-	const TIPO_VALOR 		= require('./instrucciones').TIPO_VALOR;
-	const TIPO_DATO			= require('./tabla_simbolos').TIPO_DATO; 
 	
-	const instruccionesAPI	= require('./instrucciones').instruccionesAPI;
 	let ubicacion;
-let prevToken = '';
+	let prevToken = '';
 %}
 
 
@@ -40,14 +35,14 @@ let prevToken = '';
 "default"			return 'T_DEFAULT'; //ya
 "if"				return 'T_IF'; //ya
 "else"				return 'T_ELSE'; //ya
-"do"				return 'T_DO';
-"while"				return 'T_WHILE';
-"for"				return 'T_FOR';
+"do"				return 'T_DO';//ya
+"while"				return 'T_WHILE';//ya
+"for"				return 'T_FOR';//ya
 "list"				return 'T_LIST';
 "add"				return 'T_ADD';
 "new"				return 'T_NEW';
 "break"				return 'T_BREAK'; //ya
-"continue"			return 'T_CONTINUE';
+"continue"			return 'T_CONTINUE';//ya
 "return"			return 'T_RETURN'; //ya
 "print"				return 'T_PRINT'; //ya
 
@@ -145,27 +140,32 @@ let prevToken = '';
 
 //================================ERRORES LEXICOS========================================================
 <<EOF>>				return 'EOF';
-.					{ console.log('Este es un error léxico: ' + yytext + ', en la linea: ' + yylloc.first_line + ', en la columna: ' + yylloc.first_column); 
-						$$ = instruccionesAPI.parseError(yytext, yylloc, yy,"lexico");
+.					{ console.log('Error léxico: ' + yytext + ', en la linea: ' + yylloc.first_line + ', en la columna: ' + yylloc.first_column); 
+						$$ = instruccionesAPI.parseError(yytext, yylloc, yy,"lexico", 'Error léxico: ' + yytext + ', en la linea: ' + yylloc.first_line + ', en la columna: ' + yylloc.first_column);
 					}
 
 /lex 
-// ================================IMPORTACIONES==================================================================
-
 
 
 /*=============================== PRESEDENCIA====== */
-
-
-%right 'UMENOS'
-%nonassoc 'POTENCIA' //%nonassoc
-%left 'DIVIDIDO', 'POR', "MODULO"
-%left 'MAS', 'MENOS'
-%left 'DOBLEIG', 'NOIG', 'MENQUE', 'MENIGQUE', 'MAYQUE', 'MAYIGQUE'
-%right 'NOT'
-%left 'AND'
-%left 'OR'
+%nonassoc PARIZQ
 %nonassoc 'INTERROGACION'
+%left 'OR'
+%left 'AND'
+%right 'NOT'
+
+%left 'DOBLEIG', 'NOIG', 'MENQUE', 'MENIGQUE', 'MAYQUE', 'MAYIGQUE'
+%left 'MAS', 'MENOS'
+%left 'DIVIDIDO', 'POR', "MODULO"
+%nonassoc 'POTENCIA' 
+%right 'UMENOS'
+
+
+
+
+
+
+
 
 
 /* ========================================GRAMATICA======= */
@@ -180,6 +180,7 @@ ini
 	}
 ;
 
+
 instrucciones
 	: instrucciones instruccion 	{ $1.push($2); $$ = $1; }
 	| instruccion					{ $$ = [$1]; }
@@ -192,17 +193,28 @@ instruccion
 	| funcion_main     PTCOMA               { $$ = $1; }
 	| funcion                     { $$ = $1; }
 	| metodo { $$ = $1; }
-	
+	|vectores { $$ = $1; }
+	|declaracionlistas { $$ = $1; }
+	|modifilistas { $$ = $1; }
+	|modifivector { $$ = $1; }
+	|addlistas { $$ = $1; }
 	| error  { 
 					ubicacion = {
 						first_line: @1.first_line,
 						first_column: @1.first_column
 					};
 					
-					$$ = instruccionesAPI.parseError(yytext, ubicacion,"No se eseraba  ","Sintactico");
-					console.log('Este es un error sintáctico: ' + yytext + ', en la linea: ' + @0.first_line + ', en la columna: ' + @0.first_column);
+					$$ = instruccionesAPI.parseError(yytext, ubicacion,"No se esperaba  ","Sintactico",'Error sintáctico: ' + yytext + ', en la linea: ' + this._$.first_line + ', en la columna: ' + this._$.first_column);
+					console.log('Este es un error sintáctico: ' + yytext + ', en la linea: ' + this._$.first_line + ', en la columna: ' + this._$.first_column);
 					// Descartamos el token que generó el error y continuamos el análisis después del token PTCOMA
 					 }
+;
+
+
+funcion_main
+	: T_MAIN llamada_funcion
+        {   $$ = instruccionesAPI.nuevoMain($2,@1.first_line, @1.first_column);}
+	
 ;
 
 declaracion
@@ -230,13 +242,6 @@ asignacion
 	| IDENTIFICADOR IGUAL ternarioop 
         { $$ = instruccionesAPI.nuevoAsignacion($1,$3,@1.first_line, @1.first_column); }
 ;
-
-funcion_main
-	: T_MAIN llamada_funcion
-        {   $$ = instruccionesAPI.nuevoMain($2,@1.first_line, @1.first_column);}
-	
-;
-
 llamada_funcion
     : IDENTIFICADOR PARIZQ PARDER
          { $$ = instruccionesAPI.nuevoLlamadaFuncion($1, [],@1.first_line, @1.first_column); }
@@ -300,15 +305,21 @@ instruccionmetodo
 	| sentenciacontrolIF { $$ = $1; }
 	| sentenciacontrolswitch{ $$ = $1; }
 	| sentenciabreak{ $$ = $1; }
+	| T_CONTINUE PTCOMA {$$ = instruccionesAPI.nuevoContinue(@1.first_line, @1.first_column);}
 	| incrementoDec  PTCOMA{ $$ = $1; }
-	|ciclos{ $$ = $1; }
+	| ciclos{ $$ = $1; }
+	|vectores { $$ = $1; }
+	|declaracionlistas { $$ = $1; }
+	|modifilistas { $$ = $1; }
+	|modifivector { $$ = $1; }
+	|addlistas { $$ = $1; }
 	| error  { 
 					ubicacion = {
 						first_line: @1.first_line,
 						first_column: @1.first_column
 					};
-					$$ = instruccionesAPI.parseError(@1.yytext, ubicacion, "No se eseraba  ","Sintactico");
-					console.log('Este es un error sintáctico: ' +  yytext + ', en la linea: ' + @1.first_line + ', en la columna: ' + @1.first_column);
+					$$ = instruccionesAPI.parseError(yytext, ubicacion,"No se esperaba  ","Sintactico",'Error sintáctico: ' + yytext + ', en la linea: ' + this._$.first_line + ', en la columna: ' + this._$.first_column);
+					console.log('Este es un error sintáctico: ' +  yytext + ', en la linea: ' + this._$.first_line + ', en la columna: ' + this._$.first_column);
 					// Descartamos el token que generó el error y continuamos el análisis después del token PTCOMA
 
 					}
@@ -323,42 +334,76 @@ instruccionfuncion
 	| sentenciacontrolswitch{ $$ = $1; }
 	| sentenciabreak{ $$ = $1; }
 	| retornos  { $$ = $1; }
+	| T_CONTINUE PTCOMA {$$ = instruccionesAPI.nuevoContinue(@1.first_line, @1.first_column);}
     | incrementoDec  PTCOMA{ $$ = $1; }
 	| ciclos{ $$ = $1; }
+	|vectores { $$ = $1; }
+	|declaracionlistas { $$ = $1; }
+	|modifilistas { $$ = $1; }
+	|modifivector { $$ = $1; }
+	|addlistas { $$ = $1; }
 	| error  { 
 					ubicacion = {
 						first_line: @1.first_line,
 						first_column: @1.first_column
 					};
-					$$ = instruccionesAPI.parseError(yytext, ubicacion, "No se eseraba  "+yytext,"Sintactico");
-					console.log('Este es un error sintáctico: ' +  yytext + ', en la linea: ' + @1.first_line + ', en la columna: ' + @1.first_column);
+					$$ = instruccionesAPI.parseError(yytext, ubicacion,"No se esperaba  ","Sintactico",'Error sintáctico: ' + yytext + ', en la linea: ' + this._$.first_line + ', en la columna: ' + this._$.first_column);
+					console.log('Este es un error sintáctico: ' +  yytext + ', en la linea: ' + this._$.first_line + ', en la columna: ' + this._$.first_column);
 					// Descartamos el token que generó el error y continuamos el análisis después del token PTCOMA
 
 					}
 ;
+
 expresion
-	: CADENA											{ $$ = instruccionesAPI.nuevoValor($1, TIPO_VALOR.CADENA,@1.first_line, @1.first_column); }
+	:CADENA												{ $$ = instruccionesAPI.nuevoValor($1, TIPO_VALOR.CADENA,@1.first_line, @1.first_column); }
 	| ENTERO											{ $$ = instruccionesAPI.nuevoValor(Number($1), TIPO_VALOR.INT,@1.first_line, @1.first_column); }
 	| DECIMAL											{ $$ = instruccionesAPI.nuevoValor(Number($1), TIPO_VALOR.DOUBLE,@1.first_line, @1.first_column); }
 	| BOOLEANO											{ $$ = instruccionesAPI.nuevoValor($1, TIPO_VALOR.BOOLEAN,@1.first_line, @1.first_column); }
 	| CARACTER											{ $$ = instruccionesAPI.nuevoValor($1.charAt(0), TIPO_VALOR.CARACTER,@1.first_line, @1.first_column); }
 	| IDENTIFICADOR										{ $$ = instruccionesAPI.nuevoValor($1, TIPO_VALOR.IDENTIFICADOR,@1.first_line, @1.first_column); }
 	| MENOS expresion %prec UMENOS						{ $$ = instruccionesAPI.nuevoOperacionUnaria($2, TIPO_EXPRESION.NEGATIVO,@1.first_line, @1.first_column); }
-	| expresion MAS expresion							{  if ($1.tipo === TIPO_VALOR.CADENA || $3.tipo == TIPO_VALOR.CADENA||($1.tipo === TIPO_VALOR.CARACTER && $3.tipo == TIPO_VALOR.CARACTER)) {
-																$$ = instruccionesAPI.nuevoOperacionBinaria($1, $3, TIPO_EXPRESION.CONCATENACION,@1.first_line, @1.first_column);
-															} else {
-																$$ = instruccionesAPI.nuevoOperacionBinaria($1, $3, TIPO_EXPRESION.SUMA,@1.first_line, @1.first_column);
-															}
-														}
-	| expresion MENOS expresion							{ $$ = instruccionesAPI.nuevoOperacionBinaria($1, $3, TIPO_EXPRESION.RESTA,@1.first_line, @1.first_column); }
 	| expresion POR expresion							{ $$ = instruccionesAPI.nuevoOperacionBinaria($1, $3, TIPO_EXPRESION.MULTIPLICACION,@1.first_line, @1.first_column); }
 	| expresion DIVIDIDO expresion						{ $$ = instruccionesAPI.nuevoOperacionBinaria($1, $3, TIPO_EXPRESION.DIVISION,@1.first_line, @1.first_column); }
 	| expresion POTENCIA expresion						{ $$ = instruccionesAPI.nuevoOperacionBinaria($1, $3, TIPO_EXPRESION.POTENCIA,@1.first_line, @1.first_column); }
 	| expresion MODULO expresion						{ $$ = instruccionesAPI.nuevoOperacionBinaria($1, $3, TIPO_EXPRESION.MODULO,@1.first_line, @1.first_column); }
+	| expresion MAS expresion							{  $$ = instruccionesAPI.nuevoOperacionBinaria($1, $3, TIPO_EXPRESION.SUMA,@1.first_line, @1.first_column);}
+	| expresion MENOS expresion							{ $$ = instruccionesAPI.nuevoOperacionBinaria($1, $3, TIPO_EXPRESION.RESTA,@1.first_line, @1.first_column); }
 	| PARIZQ expresion PARDER							{ $$ = $2; }
 	| llamada_funcion                 					{ $$ = $1; }
 	| incrementoDec										{ $$ = $1; }
+	| manejocarateres									{ $$ = $1; }
+	|casteo												{ $$ = $1; }
+	|funcionesnativas   								{ $$ = $1; }
+	|accesolistas										{ $$ = $1; }
+	|accesovector										{ $$ = $1; }
 	
+;
+manejocarateres
+	:T_TOLOWER PARIZQ expresion PARDER  				{ $$ = instruccionesAPI.nuevomanejocaracter(TIPO_EXPRESION.LOWER,$3 ,@1.first_line, @1.first_column); }
+	| T_TOUPPER PARIZQ expresion PARDER 				{ $$ = instruccionesAPI.nuevomanejocaracter(TIPO_EXPRESION.UPPER,$3 ,@1.first_line, @1.first_column); }
+;
+casteo
+    : PARIZQ tipocasteo  PARDER expresion				{ $$ = instruccionesAPI.nuevocasteo("CASTEO DE CADENA", $2, $4,@1.first_line, @1.first_column); }
+	| PARIZQ tipocasteonumber PARDER  expresion			{ $$ = instruccionesAPI.nuevocasteo("CASTEO NUMERICO", $2, $4,@1.first_line, @1.first_column); }
+;
+funcionesnativas   			
+	: T_LENGTH PARIZQ expresion PARDER					{ $$ = instruccionesAPI.nuevafuncionnativa(TIPO_EXPRESION.LENGTH, $3,@1.first_line, @1.first_column); }
+	|T_TRUNCATE PARIZQ expresion PARDER					{ $$ = instruccionesAPI.nuevafuncionnativa(TIPO_EXPRESION.TRUNC, $3,@1.first_line, @1.first_column); }
+	|T_TOSTRING PARIZQ expresion  PARDER				{ $$ = instruccionesAPI.nuevafuncionnativa(TIPO_EXPRESION.TOSTRING, $3,@1.first_line, @1.first_column); }
+	|T_TYPEOF PARIZQ expresion  PARDER					{ $$ = instruccionesAPI.nuevafuncionnativa(TIPO_EXPRESION.TYPEO, $3,@1.first_line, @1.first_column); }
+	|T_ROUND PARIZQ expresion PARDER					{ $$ = instruccionesAPI.nuevafuncionnativa(TIPO_EXPRESION.ROUND, $3,@1.first_line, @1.first_column); }
+;
+
+
+
+tipocasteonumber
+	:  T_INT  { $$ = TIPO_DATO.INT; }
+    | T_DOUBLE { $$ = TIPO_DATO.DOUBLE; }
+  
+;
+tipocasteo
+	: T_CHAR { $$ = TIPO_DATO.CHAR; }
+    | T_STRING { $$ = TIPO_DATO.STRING; }
 ;
 expresion_relacional
 	: expresion MAYQUE expresion		{ $$ = instruccionesAPI.nuevoOperacionBinaria($1, $3, TIPO_EXPRESION.MAYOR_QUE,@1.first_line, @1.first_column); }
@@ -367,6 +412,7 @@ expresion_relacional
 	| expresion MENIGQUE expresion	{ $$ = instruccionesAPI.nuevoOperacionBinaria($1, $3, TIPO_EXPRESION.MENOR_IGUAL,@1.first_line, @1.first_column); }
 	| expresion DOBLEIG expresion			{ $$ = instruccionesAPI.nuevoOperacionBinaria($1, $3, TIPO_EXPRESION.DOBLE_IGUAL,@1.first_line, @1.first_column); }
 	| expresion NOIG expresion			{ $$ = instruccionesAPI.nuevoOperacionBinaria($1, $3, TIPO_EXPRESION.NO_IGUAL,@1.first_line, @1.first_column); }
+	| PARIZQ expresion_relacional PARDER							{ $$ = $2; }
 
 ;
 expresion_logica
@@ -380,6 +426,7 @@ expresionescompuestas
 	:expresion_logica{ $$ = $1; }
 	| expresion{ $$ = $1; }
 ;
+
 tipos
 	: T_INT IDENTIFICADOR { $$ = {tipo: TIPO_DATO.INT, identificador: $2, linea:@2.first_line, columna: @2.first_column}; }
     | T_DOUBLE IDENTIFICADOR { $$ = {tipo: TIPO_DATO.DOUBLE, identificador: $2, linea:@1.first_line, columna: @1.first_column}; }
@@ -387,15 +434,15 @@ tipos
     | T_STRING IDENTIFICADOR { $$ = {tipo: TIPO_DATO.STRING, identificador: $2, linea:@1.first_line, columna: @1.first_column}; }
 ;
 sentenciaprint
-	:T_PRINT PARIZQ expresion PARDER 	{ $$ = instruccionesAPI.nuevoPRINT($3,@1.first_line, @1.first_column); }
+	:T_PRINT PARIZQ expresionescompuestas PARDER 	{ $$ = instruccionesAPI.nuevoPRINT($3,@1.first_line, @1.first_column); }
 ;
 sentenciacontrolIF
-	: T_IF PARIZQ expresion_logica PARDER LLAVIZQ instruccionesfuncion LLAVDER
-		{ $$ = instruccionesAPI.nuevoIf($3, $6,@1.first_line, @1.first_column); }
-	| T_IF PARIZQ expresion_logica PARDER LLAVIZQ instruccionesfuncion LLAVDER T_ELSE LLAVIZQ instruccionesfuncion LLAVDER
-		{ $$ = instruccionesAPI.nuevoIfElse($3, $6, $10,@1.first_line, @1.first_column); }
-	| T_IF PARIZQ expresion_logica PARDER LLAVIZQ instruccionesfuncion LLAVDER T_ELSE sentenciacontrolIF
-		{ $$ = instruccionesAPI.nuevoIfElse($3, $6, $9,@1.first_line, @1.first_column); }
+	: T_IF PARIZQ expresion_logica PARDER bloqueinstrucciones
+		{ $$ = instruccionesAPI.nuevoIf($3, $5,@1.first_line, @1.first_column); }
+	| T_IF PARIZQ expresion_logica PARDER bloqueinstrucciones T_ELSE bloqueinstrucciones
+		{ $$ = instruccionesAPI.nuevoIfElse($3, $5, $7,@1.first_line, @1.first_column); }
+	| T_IF PARIZQ expresion_logica PARDER bloqueinstrucciones T_ELSE sentenciacontrolIF
+		{ $$ = instruccionesAPI.nuevoIfElse($3, $5, $7,@1.first_line, @1.first_column); }
 ;
 sentenciacontrolswitch
 	:T_SWITCH PARIZQ expresion PARDER LLAVIZQ casos LLAVDER
@@ -417,7 +464,7 @@ caso_evaluar
 ;
 
 ternarioop
-	:| expresion_logica INTERROGACION expresion DOSPTS expresion { $$ = instruccionesAPI.nuevoOperacionTernario($1, $3,$5,@1.first_line, @1.first_column); }
+	:expresion_logica INTERROGACION expresion DOSPTS expresion { $$ = instruccionesAPI.nuevoOperacionTernario($1, $3,$5,@1.first_line, @1.first_column); }
 ;
 
 retornos
@@ -428,16 +475,16 @@ retornos
 ;
 sentenciabreak
     : T_BREAK PTCOMA
-        { $$ = instruccionesAPI.nuevoBreak(); }
+        { $$ = instruccionesAPI.nuevoBreak(@1.first_line, @1.first_column); }
 ;
 
 ciclos
-	:T_WHILE PARIZQ expresion_logica PARDER LLAVIZQ instruccionesfuncion LLAVDER
-		{ $$ = instruccionesAPI.nuevoWHILE($3, $6,@1.first_line, @1.first_column); }
-	| T_DO LLAVIZQ instruccionesfuncion LLAVDER T_WHILE PARIZQ expresion_logica PARDER PTCOMA
-		{ $$ = instruccionesAPI.nuevoDOWHILE($3, $7,@1.first_line, @1.first_column); }
-	| T_FOR PARIZQ incializarfor PTCOMA expresion_relacional PTCOMA actualizar PARDER LLAVIZQ instruccionesfuncion LLAVDER
-		{ $$ = instruccionesAPI.nuevoPara($3,$5,$7,$10,@1.first_line, @1.first_column) }
+	:T_WHILE PARIZQ expresion_logica PARDER bloqueinstrucciones
+		{ $$ = instruccionesAPI.nuevoWHILE($3, $5,@1.first_line, @1.first_column); }
+	| T_DO bloqueinstrucciones T_WHILE PARIZQ expresion_logica PARDER PTCOMA
+		{ $$ = instruccionesAPI.nuevoDOWHILE($2, $5,@1.first_line, @1.first_column); }
+	| T_FOR PARIZQ incializarfor PTCOMA expresion_relacional PTCOMA actualizar PARDER bloqueinstrucciones
+		{ $$ = instruccionesAPI.nuevoPara($3,$5,$7,$9,@1.first_line, @1.first_column) }
 	
 ;
 
@@ -458,35 +505,53 @@ incrementoDec
 	| IDENTIFICADOR DECREMENTO {$$ = instruccionesAPI.nuevoAumDec("DECREMENTO", $1,@1.first_line, @1.first_column);}
 ;
 
-
-
-
-/*
-operadores
-    : O_MAS      { $$ = instruccionesAPI.nuevoOperador(TIPO_EXPRESION.SUMA); }
-	| O_MENOS    { $$ = instruccionesAPI.nuevoOperador(TIPO_EXPRESION.RESTA); }
-    | O_POR      { $$ = instruccionesAPI.nuevoOperador(TIPO_EXPRESION.MULTIPLICACION); }
-	| O_DIVIDIDO { $$ = instruccionesAPI.nuevoOperador(TIPO_EXPRESION.DIVISION); }
+vectores
+	: tipovector CORCIZQ CORCDER IDENTIFICADOR IGUAL declaracionvector PTCOMA 
+	{ $$ = instruccionesAPI.nuevoDecVector($1,$4,$6,@1.first_line, @1.first_column); }
+	
+;
+tipovector
+	: T_INT  { $$ = TIPO_DATO.INT; }
+    | T_DOUBLE { $$ = TIPO_DATO.DOUBLE; }
+	| T_CHAR { $$ = TIPO_DATO.CHAR; }
+    | T_STRING { $$ = TIPO_DATO.STRING; }
+	| T_BOOLEAN { $$ = TIPO_DATO.BOOLEAN; }
+;
+declaracionvector
+	: T_NEW tipovector CORCIZQ ENTERO CORCDER { $$ = instruccionesAPI.nuevoAsigVector($2,instruccionesAPI.nuevoValor(Number($4), TIPO_VALOR.INT,@4.first_line, @4.first_column),@1.first_line, @1.first_column); }
+	| LLAVIZQ datosvector LLAVDER { $$ = $2; }
+;
+datosvector
+    : datosvector COMA expresionescompuestas { $1.push($3); $$ = $1; }
+    | expresionescompuestas { $$ = [$1]; }
 ;
 
-*/
+
+declaracionlistas 
+ :T_LIST MENQUE tipovector MAYQUE IDENTIFICADOR IGUAL formasdec
+ { $$ = instruccionesAPI.nuevaList($3,$5,$7,@1.first_line, @1.first_column); }
+;
+formasdec
+	: T_TOCHARARRAY PARIZQ expresion  PARDER	PTCOMA			
+	{ $$ = instruccionesAPI.nuevafuncionnativa(TIPO_EXPRESION.CHARARRAY, $3,@1.first_line, @1.first_column); }
+	|T_NEW T_LIST MENQUE tipovector MAYQUE PTCOMA  { $$ = $4; }
+;
 
 
-/*
-expresion_relacional
-	: expresion_numerica MAYQUE expresion_numerica		{ $$ = instruccionesAPI.nuevoOperacionBinaria($1, $3, TIPO_EXPRESION.MAYOR_QUE); }
-	| expresion_numerica MENQUE expresion_numerica		{ $$ = instruccionesAPI.nuevoOperacionBinaria($1, $3, TIPO_EXPRESION.MENOR_QUE); }
-	| expresion_numerica MAYIGQUE expresion_numerica	{ $$ = instruccionesAPI.nuevoOperacionBinaria($1, $3, TIPO_EXPRESION.MAYOR_IGUAL); }
-	| expresion_numerica MENIGQUE expresion_numerica	{ $$ = instruccionesAPI.nuevoOperacionBinaria($1, $3, TIPO_EXPRESION.MENOR_IGUAL); }
-	| expresion_cadena DOBLEIG expresion_cadena			{ $$ = instruccionesAPI.nuevoOperacionBinaria($1, $3, TIPO_EXPRESION.DOBLE_IGUAL); }
-	| expresion_cadena NOIG expresion_cadena			{ $$ = instruccionesAPI.nuevoOperacionBinaria($1, $3, TIPO_EXPRESION.NO_IGUAL); }
-;*/
-/*
-expresion_logica
-	: expresion_relacional AND expresion_relacional     { $$ = instruccionesAPI.nuevoOperacionBinaria($1, $3, TIPO_EXPRESION.AND); }
-	| expresion_relacional OR expresion_relacional 		{ $$ = instruccionesAPI.nuevoOperacionBinaria($1, $3, TIPO_EXPRESION.OR); }
-	| NOT expresion_relacional							{ $$ = instruccionesAPI.nuevoOperacionUnaria($2, TIPO_EXPRESION.NOT); }
-	| expresion_relacional								{ $$ = $1; }
-;*/
 
+addlistas 
+ : IDENTIFICADOR PTS T_ADD PARIZQ expresionescompuestas PARDER PTCOMA { $$ = instruccionesAPI.nuevoAdd($1,$5,@1.first_line, @1.first_column); }
+;
 
+accesovector
+	: IDENTIFICADOR CORCIZQ expresion CORCDER { $$ = instruccionesAPI.nuevoAcceso($1,$3,"VECTOR",@1.first_line, @1.first_column); }
+;
+modifivector
+	: IDENTIFICADOR CORCIZQ expresion CORCDER IGUAL expresionescompuestas PTCOMA  { $$ = instruccionesAPI.nuevoModificacion($1,$3,"VECTOR",$6,@1.first_line, @1.first_column); }
+;
+accesolistas
+	: IDENTIFICADOR CORCIZQ CORCIZQ expresion CORCDER CORCDER  { $$ = instruccionesAPI.nuevoAcceso($1,$4,"LISTA",@1.first_line, @1.first_column); }
+;
+modifilistas
+	: IDENTIFICADOR CORCIZQ CORCIZQ expresion CORCDER CORCDER  IGUAL expresionescompuestas PTCOMA { $$ = instruccionesAPI.nuevoModificacion($1,$4,"LISTA",$8,@1.first_line, @1.first_column); }
+;

@@ -1,5 +1,3 @@
-
-// Constantes para los tipos de 'valores' expresiones que reconoce nuestra gramática.
 const TIPO_VALOR = {
 	INT:        	'VAL_INT',
 	DOUBLE:        	'VAL_DOUBLE',
@@ -33,9 +31,23 @@ const TIPO_EXPRESION = {
 	
 	CONCATENACION:  'OP_CONCATENACION',
 	TERNARIO:		'OP_TERNARIO',
+	CASTEO:			'EXP_CASTEO',
+	CASTEO1:		'EXP_CASTEO_NUMERICO',
+	LOWER:			'EXP_LOWER',
+	UPPER:			'EXP_UPPER',
+	LENGTH:			'EXP_LENGTH',
+	TRUNC:			'EXP_TRUNCATE',
+	CHARARRAY:		'EXP_TOCHARARRAY',
+	TOSTRING:		'EXP_TOSTRING',
+	TYPEO:			'EXP_TYPEOF',
+	ROUND:			'EXP_ROUND',
 	LLAMADA: 		'LLAMADA',
-	RETORNO:		'RETURN'
+	RETORNO:		'RETURN',
+	ACCESO:         'EXP_ACCESO_VECTOR',
+	ASIGVECTOR:     'ASIGNACION_VECTOR'
 };
+
+
 
 // Constantes para los tipos de 'instrucciones' válidas en nuestra gramática.
 const TIPO_INSTRUCCION = {
@@ -52,11 +64,16 @@ const TIPO_INSTRUCCION = {
 	METODOS:        'METODO',
 	FUNCIONES:      'FUNCION',
 	BREAK:      	'INST_BREAK',
+	CONTINUE:      	'INST_CONTINUE',
 	PARA: 			'INST_PARA',
 	WHILE:			'INSTR_WHILE',//no
-	DOWHILE:			'INSTR_DO_WHILE',//no
+	DOWHILE:		'INSTR_DO_WHILE',//no
 	AUMENTOS:		'INSTR_AUMENTO_DECREMENTO',
-	ASIGNACION_SIMPLIFICADA: 'ASIGNACION_SIMPLIFICADA' //no
+	ASIGNACION_SIMPLIFICADA: 'ASIGNACION_SIMPLIFICADA', //no
+	VECTOR:			'INST_DECLARACION_VECTOR',
+	LIST:			'INST_DECLARACION_LISTA',
+	LIST_ADD:		'INST_ADD',
+	MODIFIESTRUC:	'INST_MODIFICACION'
 
 }
 
@@ -95,7 +112,7 @@ const instruccionesAPI = {
 	},
 	
 	nuevoDeclaracion: function(identificador, tipo,esGlobal,linea,columna) {
-		console.log("inst_identi: ",identificador,tipo)
+
 		let valorpordefecto={valor:0,tipo_dato:tipo};
 		if (tipo=="DOUBLE"){
 			valorpordefecto={valor:parseFloat(0.0),tipo_dato:tipo};
@@ -180,11 +197,12 @@ const instruccionesAPI = {
 	},
 
 	nuevoOperacionBinaria: function(operandoIzq, operandoDer, tipo,linea,columna) {
-		console.log("inst_operaciones; ",operandoIzq,operandoDer)
+		
 		return nuevaOperacion(operandoIzq, operandoDer, tipo,linea,columna);
 	},
  
 	nuevoOperacionUnaria: function(operando, tipo,linea,columna) {
+	
 		return nuevaOperacion(operando, undefined, tipo,linea,columna);
 	},
  
@@ -257,12 +275,24 @@ const instruccionesAPI = {
 		}
 	},
 
-    nuevoBreak() {
+   
+    nuevoBreak(linea,columna) {
 		return {
-			tipo: TIPO_INSTRUCCION.BREAK
+			tipo: "SENTENCIA DE TRANSFERENCIA",
+			tipodato: TIPO_INSTRUCCION.BREAK,
+			linea:linea,
+			columna: columna
+		
 		};
 	},
-	
+	nuevoContinue(linea,columna){
+		return {
+			tipo:"SENTENCIA DE TRANSFERENCIA",
+			tipodato: TIPO_INSTRUCCION.CONTINUE,
+			linea:linea,
+			columna: columna
+		};
+	},
 	nuevoReturn: function(expresionNumerica, linea,columna) {
 		return {
 			tipo: "SENTENCIA DE TRANSFERENCIA",
@@ -352,22 +382,130 @@ const instruccionesAPI = {
 		return operador 
 	},
 
-	parseError( yytext, yylloc, yy,tipo) {
+	parseError( yytext, yylloc, yy,tipo,consola) {
 		// Agregamos el error a la lista de errores
 		errores.push({
 			tipo: tipo,
 			texto: yy,
 			linea: yylloc.first_line,
 			columna: yylloc.first_column,
+			consola: consola,
 			token: yytext // Guardamos el valor del token que generó el error
 		});
-	}
-}
-// Exportamos nuestras constantes y nuestra API
+	},
 
-module.exports.TIPO_EXPRESION = TIPO_EXPRESION;
-module.exports.TIPO_INSTRUCCION = TIPO_INSTRUCCION;
-module.exports.TIPO_VALOR = TIPO_VALOR;
-module.exports.instruccionesAPI = instruccionesAPI;
-module.exports.errores = errores;
-module.exports.TIPO_OPCION_SWITCH = TIPO_OPCION_SWITCH;
+	nuevomanejocaracter: function(tipodeinstruccion,expresion,linea,columna){
+		return{
+			tipo: tipodeinstruccion,
+			tipodato:"CONVERT CARACTERES",
+			expresionCadena: expresion,
+			linea:linea,
+			columna: columna
+
+		} 
+	},
+
+	nuevocasteo: function(tipodeinstruccion,tipocasteo,expresion,linea,columna){
+		let tipoexpresion;
+		if (tipodeinstruccion=="CASTEO NUMERICO"){
+			tipoexpresion=TIPO_EXPRESION.CASTEO1;
+		
+		}else{
+			tipoexpresion=TIPO_EXPRESION.CASTEO;
+		}
+		return{
+			tipo: tipoexpresion,
+			tipodato:tipodeinstruccion,
+			castear: tipocasteo,
+			expresion: expresion,
+			linea:linea,
+			columna: columna
+
+		} 
+	},
+	nuevafuncionnativa: function(tipodeinstruccion,expresion,linea,columna){
+		
+		return{
+			tipo: tipodeinstruccion,
+			tipodato:"FUNCIONES NATIVAS",
+			expresion: expresion,
+			linea:linea,
+			columna: columna
+
+		} 
+	}
+	,
+	nuevoDecVector: function(tipo,id, declaracion,linea,columna){
+		
+		return{
+			tipo: TIPO_INSTRUCCION.VECTOR,
+			tipodato: tipo,
+			id: id,
+			declaracion: declaracion,
+			linea:linea,
+			columna: columna
+
+		} 
+	},
+	nuevoAsigVector: function(tipo,tam,linea,columna){
+		
+		return{
+			tipo: TIPO_EXPRESION.ASIGVECTOR,
+			tipodato: tipo,
+			tam:tam, 
+			linea:linea,
+			columna: columna
+
+		} 
+	},
+	nuevoAcceso: function(id,posicion,tipo,linea,columna){
+		
+		return{
+			tipo: TIPO_EXPRESION.ACCESO,
+			id: id,
+			tipodato: tipo,
+			posicion:posicion, 
+			linea:linea,
+			columna: columna
+
+		} 
+	},
+	nuevoModificacion: function(id,posicion,tipo,expresion,linea,columna){
+		
+		return{
+			tipo: TIPO_INSTRUCCION.MODIFIESTRUC,
+			id: id,
+			tipodato:tipo,
+			posicion:posicion, 
+			expresion:expresion,
+			linea:linea,
+			columna: columna
+
+		} 
+	},
+	nuevoAdd: function(id,expresion,linea,columna){
+		
+		return{
+			tipo: TIPO_INSTRUCCION.LIST_ADD,
+			id: id, 
+			expresion:expresion,
+			linea:linea,
+			columna: columna
+
+		} 
+	},
+	nuevaList: function(tipo,id, tipoinstancia,linea,columna){
+		
+		return{
+			tipo: TIPO_INSTRUCCION.LIST,
+			tipodato: tipo,
+			id: id,
+			tipoinstancia: tipoinstancia,
+			linea:linea,
+			columna: columna
+
+		} 
+	}
+
+}
+
