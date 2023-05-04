@@ -8,7 +8,6 @@ const TIPO_DATO = {
 
 }
 
-
 function crearSimbolo(id, tipo,tipodato,entorno,linea,columna, valor) {
     return {
         id: id,
@@ -157,7 +156,6 @@ class TS {
          }
         return tsrepetidos;
     }
-
   
     obtener(id, linea, columna) {
         
@@ -175,9 +173,6 @@ class TS {
         }
         return variable;
     }
-    /**
-     * Función getter para obtener los símbolos.
-     */
     get simbolos() {
         return this._simbolos;
     }

@@ -9,6 +9,7 @@
 let grapharbol="";
 let graphts="";
 let grapherror="";
+let cadena="";
 // Para el Navbar
 let navLinks = document.querySelectorAll('.nav-link');
 navLinks[0].classList.add('active');
@@ -90,7 +91,7 @@ function showOffcanvas(event) {
 
 // Cambiar imagen de reporte segun lo seleccionado
 function changeImage(text) {
-  let cadena="";
+
    if (text=="1"){ 
        cadena=grapherror;
    }else if(text=="2"){
@@ -639,12 +640,19 @@ if (event.key === 'Enter') {
 function ejecutaranalizador (entrada,consoleEditor){
   let ast=null;
   try {
-    let grapharbol="";
-let graphts="";
-let grapherror="";
-     
+      grapharbol="";
+      graphts="";
+      grapherror="";
+      erroreslist=[];
+      entorno="Global";
+      tsReporte = [];
+      tipofuncion=null;
+      funcionactual=null;
+      ciclo=null;
+      cadena="";
+      errores=[];
       ast = gramatica.parse(entrada.toString());
-     
+      
       // imrimimos en un archivo el contendio del AST en formato JSON
       /*const blob = new Blob([JSON.stringify(ast, null, 2)], {type: 'application/json'});
       const url = URL.createObjectURL(blob);

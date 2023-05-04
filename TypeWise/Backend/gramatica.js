@@ -1125,8 +1125,8 @@ break;
 case 71:return 5;
 break;
 case 72: console.log('Error léxico: ' + yy_.yytext + ', en la linea: ' + yy_.yylloc.first_line + ', en la columna: ' + yy_.yylloc.first_column); 
-						$$ = instruccionesAPI.parseError(yy_.yytext, yy_.yylloc, yy,"lexico", 'Error léxico: ' + yy_.yytext + ', en la linea: ' + yy_.yylloc.first_line + ', en la columna: ' + yy_.yylloc.first_column);
-					
+				$$ = instruccionesAPI.parseError(yy_.yytext, yy_.yylloc, "No se esperaba: ","lexico", 'Error léxico: ' + yy_.yytext + ', en la linea: ' + yy_.yylloc.first_line + ', en la columna: ' + yy_.yylloc.first_column);
+			
 break;
 }
 },

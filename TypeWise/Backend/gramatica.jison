@@ -3,7 +3,6 @@
  */
 
 /* Definición Léxica */
-// ================================IMPORTACIONES==================================================================
 %{
 	
 	let ubicacion;
@@ -109,11 +108,7 @@
 
 
 //==========================EXPRESIONES========================================================================================
-/*
-[\s\r\t]+											// se ignoran espacios en blanco
-\n											// se ignoran saltos de linea
-"//".*										// comentario simple línea
-[/][*][^*]*[*]+([^/*][^*]*[*]+)*[/]			// comentario multiple líneas*/
+
 [0-9]+\.[0-9]+\b  	return 'DECIMAL';
 [0-9]+\b				return 'ENTERO';
 "true"                  return 'BOOLEANO';
@@ -126,7 +121,7 @@
 
 \'[^\']\' { yytext = yytext.substr(1,yyleng-2).toLowerCase(); return 'CARACTER'; }
 
-//\"[^\"]*\"				{ yytext = yytext.substr(1,yyleng-2); return 'CADENA'; }
+
 \"(\\.|[^"\\])*\" {
     yytext = yytext.substr(1,yyleng-2);
     yytext = yytext.replace(/\\\\/g, '\\');
@@ -139,10 +134,10 @@
 
 
 //================================ERRORES LEXICOS========================================================
-<<EOF>>				return 'EOF';
-.					{ console.log('Error léxico: ' + yytext + ', en la linea: ' + yylloc.first_line + ', en la columna: ' + yylloc.first_column); 
-						$$ = instruccionesAPI.parseError(yytext, yylloc, yy,"lexico", 'Error léxico: ' + yytext + ', en la linea: ' + yylloc.first_line + ', en la columna: ' + yylloc.first_column);
-					}
+<<EOF>>		return 'EOF';
+.			{ console.log('Error léxico: ' + yytext + ', en la linea: ' + yylloc.first_line + ', en la columna: ' + yylloc.first_column); 
+				$$ = instruccionesAPI.parseError(yytext, yylloc, "No se esperaba: ","lexico", 'Error léxico: ' + yytext + ', en la linea: ' + yylloc.first_line + ', en la columna: ' + yylloc.first_column);
+			}
 
 /lex 
 
@@ -184,7 +179,6 @@ ini
 instrucciones
 	: instrucciones instruccion 	{ $1.push($2); $$ = $1; }
 	| instruccion					{ $$ = [$1]; }
-	//|{ $$ = []; }
 ;
 
 instruccion
