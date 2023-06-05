@@ -1,0 +1,21 @@
+int sumar(int a, int b){
+return a+b;
+}
+
+void funcion_main(){
+print( false ? 5 : 2);//2
+print( (false || true && 5<9) ? 5 : 2); //5
+print( true ? "respuesta correcta" : false); //respuesta correcta
+print( false ? "no es esto" : (true ? ("la respuesta es "+(1+9)*10) : 9)); //la respuesta es 100
+print( (sumar(7,3) > 10) ? 5 : "7+3 no es mayor a 10");//7+3 no es mayor a 10
+}
+
+main funcion_main();
+
+/* Resultado
+2
+5
+respuesta correcta
+la respuesta es 100
+7+3 no es mayor a 10
+*/

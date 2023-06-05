@@ -1,0 +1,152 @@
+/*---------------------SUMAS--------------------------------------------------*/
+
+
+print("aca van mis operaciones suma con entero y any"); // esto es valido
+
+print(5+1); // esto es valido
+print(5+1.0); // esto es valido
+print(5+false); // esto es valido
+print(5+'a'); // esto es valido
+print(5+" zzzz"); // esto es valido
+
+print("aca van mis operaciones suma con double y any"); // esto es valido
+
+
+print(5.1+1); // esto es valido
+print(5.1+1.0); // esto es valido
+print(5.1+false); // esto es valido
+print(5.1+'a'); // esto es valido
+print(5.1+" zzzz"); // esto es valido
+
+print("aca van mis operaciones suma con boolean y any"); // esto es valido
+
+
+
+print(false+1); // esto es valido
+print(false+1.0); // esto es valido
+print(false+false); // esto es no valido
+print(false+'a'); // esto es no valido
+print(false+" zzzz"); // esto es valido
+
+print("aca van mis operaciones suma con char y any"); // esto es valido
+
+
+
+print('c'+1.0); // esto es valido
+print('c'+1.0); // esto es valido
+print('c'+false); // esto es no valido
+print('c'+'a'); // esto es valido
+print('c'+" zzzz"); // esto es valido
+
+print("aca van mis operaciones suma con string y any"); // esto es valido
+
+
+print("prueba"+1.0); // esto es valido
+print("prueba"+1.0); // esto es valido
+print("prueba"+false); // esto es no valido
+print("prueba"+'a'); // esto es valido
+print("prueba"+" zzzz"); // esto es valido
+
+/*-------------------------------------------------------------------------*/
+
+/*------------------------RESTAS----------------------------------------------*/
+
+print("aca van mis operaciones resta con entero y any"); // esto es valido
+
+print(5-1); // esto es valido
+print(5-1.0); // esto es valido
+print(5-false); // esto es valido
+print(5-true); // esto es valido
+print(5-'a'); // esto es valido
+print(5-"zzzz"); // esto no es valido
+
+print("aca van mis operaciones resta con double y any"); // esto es valido
+
+
+print(5.1-1); // esto es valido
+print(5.1-1.0); // esto es valido
+print(5.1-false); // esto es valido
+print(5.1-'a'); // esto es valido
+print(5.1-" zzzz"); // esto no es valido
+
+print("aca van mis operaciones resta con boolean y any"); // esto es valido
+
+
+
+print(false-1); // esto es valido
+print(false-1.0); // esto es valido
+print(false-false); // esto no es valido
+print(false-'a'); // esto no es valido
+print(false-" zzzz"); // esto no es valido
+
+print("aca van mis operaciones resta con char y any"); // esto es valido
+
+
+
+print('c'-1.0); // esto es valido
+print('c'-1.0); // esto es valido
+print('c'-false); // esto es no valido
+print('c'-'a'); // esto no es valido
+print('c'-" zzzz"); // esto no es valido
+
+print("aca van mis operaciones resta con string y any"); // esto es valido
+
+
+print("prueba"-1.0); // esto no es valido
+print("prueba"-1.0); // esto no es valido
+print("prueba"-false); // esto no es valido
+print("prueba"-'a'); // esto no es valido
+print("prueba"-" zzzz"); // esto no es valido
+
+
+/*------------------------MULTIPLICACIONES----------------------------------------------*/
+
+print("aca van mis operaciones multiplicacion con entero y any"); // esto es valido
+
+print(5*1); // esto es valido
+print(5*1.0); // esto es valido
+print(5*false); // esto no es valido
+print(5*true); // esto es valido
+print(5*'a'); // esto es valido
+print(5*"zzzz"); // esto no es valido
+
+print("aca van mis operaciones multiplicacion con double y any"); // esto es valido
+
+
+print(5.1*1); // esto es valido
+print(5.1*1.0); // esto es valido
+print(5.1*false); // esto no es valido
+print(5.1*'a'); // esto es valido
+print(5.1*" zzzz"); // esto no es valido
+
+print("aca van mis operaciones multiplicacion con boolean y any"); // esto es valido
+
+
+
+print(false*1); // no valido
+print(false*1.0); // no valido
+print(false*false); //  no valido
+print(false*'a'); //  no valido
+print(false*" zzzz"); //  no valido
+
+print("aca van mis operaciones multiplicacion con char y any"); // esto es valido
+
+
+
+print('c'*1.0); // esto es valido
+print('c'*1.0); // esto es valido
+print('c'*false); // esto es no valido
+print('c'*'a'); // esto no es valido
+print('c'*" zzzz"); // esto no es valido
+
+print("aca van mis operaciones multiplicacion con string y any"); // esto es valido
+
+
+print("prueba"*1.0); // esto no es valido
+print("prueba"*1.0); // esto no es valido
+print("prueba"*false); // esto no es valido
+print("prueba"*'a'); // esto no es valido
+print("prueba"*" zzzz"); // esto no es valido
+
+
+

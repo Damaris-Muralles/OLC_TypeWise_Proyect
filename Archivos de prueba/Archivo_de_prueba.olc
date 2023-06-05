@@ -1,0 +1,16 @@
+{
+CONJ: nuevo -> a~z;
+CONJ: separados -> 2,a,e,R,d,0,9;
+CONJ: prueba -> G~O;
+CONJ: nuevo1 -> 1~5;
+
+
+EXPreg -> . |{nuevo} "2" * {nuevo};
+%%
+// pruebas 
+<! comentario multilinea
+asdasdasdasd
+asdsad!>
+EXPreg: "este es un lexema";
+
+}

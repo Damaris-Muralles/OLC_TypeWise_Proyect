@@ -1,0 +1,21 @@
+{
+CONJ: letra -> a~z;
+CONJ: separados -> 2,a,e,R,d,0,9;
+CONJ: mayus-> G~O;
+CONJ: nums-> 1~5;
+
+
+EXPreg -> . |{letra} "2" * {nums};
+EXPreg2 -> .. |{letra} "2" * {nums} . | * |{separados} {mayus} "x" {separados};
+Oracion -> . + {letra} . "." + {letra};
+cerradura -> | * {letra} {separados};
+
+
+%%
+// pruebas 
+<! comentario multilinea
+asdasdasdasd
+asdsad!>
+Oracion: "este.es";
+
+}

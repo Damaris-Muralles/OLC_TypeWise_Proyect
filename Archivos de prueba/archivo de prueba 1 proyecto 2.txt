@@ -1,0 +1,17 @@
+//esto tampoco
+
+void funcion1(string s, int valor, boolean f){
+  if(valor>5){
+	return true;
+  }
+}
+
+main funcion1("nuevo string", 5, false);
+
+/*comentario multilinea
+a
+s
+d
+as
+esto no afecta en nada
+*/

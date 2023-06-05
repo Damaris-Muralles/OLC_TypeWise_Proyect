@@ -1,0 +1,68 @@
+int funcion_suma(int a, int b){
+	int resultado = a+b;
+	return resultado;
+}
+
+
+void funcion_main(){
+	int a = 2;
+	string s = "este es un string";
+	boolean [] vector1 = new boolean [3-1];
+	list <string> compras = new list <string>;
+	print(a+a/a*a-a^a); //-1
+	print(true||false && !true); //true
+	if(a != 5){
+	for(int i=0; i<length(s);i++){
+		print(i); //de 0 a 17
+	}
+	}else{
+	return; //no se ejecuta
+	}
+	
+	string t = (string) 2310.56423;
+	compras.add("manzana");
+	compras.add("pan");
+	print(compras[[0]]); //imprime manzana
+	int edad = 18;
+	
+	switch( edad ) {
+		Case 10:
+			Print("Tengo 10 anios.");
+			// mas sentencias
+			Break;
+		Case 18:
+			Print("Tengo 18 anios.");
+			// mas sentencias
+		Case 25:
+			Print("Tengo 25 anios.");
+			//mas sentencias
+			Break;
+		Default:
+			Print("No se que edad tengo. :(");
+			// mas sentencias
+			Break;
+	}
+	
+	while (x<100){ if (x > 50)
+		{
+		print("Mayor que 50");
+		//Más sentencias
+		}
+		else
+		{
+		print("Menor que 100");
+		//Más sentencias
+		}
+		X++;
+		//Más sentencias
+	}
+	S = toUpPer(s);
+	print(s); // ESTE ES UN STRING
+	S = toloweR(s);
+	print(s); // este es un string
+	print(funcion_suma(5, 3)); // 8
+	s = -1;
+}
+
+
+main funcion_main();
